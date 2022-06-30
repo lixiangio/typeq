@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    // "declarationMap": true,
+    "declaration": true,
+    // "sourceMap": true,
+    // "outDir": "dist",
+  }
+}

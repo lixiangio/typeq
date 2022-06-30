@@ -1,0 +1,20 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.js.map"
+  },
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5532,
+      "driver": "PostgreSQL",
+      "name": "localhost",
+      "database": "test",
+      "password": "M2Idiftre&34FS",
+      "username": "postgres",
+      "group": "localhost"
+    }
+  ],
+}

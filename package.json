@@ -1,0 +1,37 @@
+{
+  "name": "typeq",
+  "version": "0.0.2",
+  "type": "module",
+  "description": "Postgresql ORM，为简化 JSON 操作定制",
+  "main": "./main/index.js",
+  "module": "./main/index.js",
+  "exports": {
+    ".": "./main/index.js",
+    "./pgclient": "./extensions/pgclient.js"
+  },
+  "types": "./main/index.d.ts",
+  "devDependencies": {
+    "pg": "^8.7.3",
+    "typea": "^8.2.0"
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "clean": "tsc --build --clean",
+    "start": "node ./main/index.js",
+    "test": "jtm"
+  },
+  "files": [
+    "main/**/*.js"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiangle/typeq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xiangle/typeq/issues"
+  },
+  "homepage": "https://github.com/xiangle/typeq#readme"
+}
