@@ -1,6 +1,6 @@
-# type
+# typeq
 
-适用于 Postgresql 和 CockroachDB 数据库的简单、轻量级 ORM 。
+适用于 Postgresql 和 CockroachDB 数据库的简单、轻量级 ORM。
 
 ## 特性
 
@@ -39,7 +39,6 @@ import { Schema, Model, queue, operator } from "typepg";
 import pgclient from 'typepg/pgclient';
 
 const client = pgclient({
-   // 默认数据库，缺省状态下默认连接该数据库
    default: {
       host: 'localhost',
       database: 'demo',
@@ -48,14 +47,7 @@ const client = pgclient({
       port: 5432,
       logger: true,
    },
-   user: {
-      host: 'localhost',
-      database: 'demo',
-      username: 'postgres',
-      password: '******',
-      port: 5432,
-      logger: true,
-   },
+   user: { ... },
 });
 
 queue.use(client);
