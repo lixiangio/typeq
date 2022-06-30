@@ -4,9 +4,9 @@
 
 ## 特性
 
-- 支持为 JSON、JSONB 类型字段建模，提供对 JSON 数据结构、类型的深度校验与 SQL 合成；
+- 支持为 JSON 类型字段建模，提供 JSON 数据结构、类型的深度校验与 SQL 合成；
 
-- 支持为 JSONB 数组内的对象自动创建独立的自增序列，为嵌套数据提供唯一索引；
+- 支持为 JSONB 类型中的对象自动创建独立的自增序列，为嵌套数据查询提供唯一索引；
 
 - 采用数据模型与数据库客户端分离设计，为多数据库、多租户、分布式场景提供更灵活的模型切换与复用支持；
 
@@ -22,10 +22,6 @@
 
 - 保留类似 SQL 的语法特征，使用函数链风格的查询表达式，简洁、直观、易于读写；
 
-## 为什么要做这个项目？
-
-由于主流 ORM 倾向于广泛兼容各种类型的数据库，但是受 SQL 语法兼容性、复杂性、数据库版本差异等诸多因素的影响，不得不在功能和兼容性之间做出取舍，也只能做到跨平台一部分代码兼容。在实际应用中，很多通用 ORM 在面对某些复杂的或边缘查询用例时可读性差，代码看起来也显得很鸡肋。因此，Typeq 不打算追求大而全，未来将专注于以 Postgresql 数据库作为主要的适配目标，优化常见的高频查询用例，期望在性能和开发体验之间找到合适的平衡点，对于复杂用例建议使用 SQL 查询。
-
 ## Install
 
 ```sh
@@ -34,75 +30,82 @@ npm install typeq
 
 ## Example
 
-```js
+```ts
 import { Schema, Model, queue, operator } from "typepg";
-import pgclient from 'typepg/pgclient';
+import pgclient from "typepg/pgclient";
 
 const client = pgclient({
-   default: {
-      host: 'localhost',
-      database: 'demo',
-      username: 'postgres',
-      password: '******',
-      port: 5432,
-      logger: true,
-   },
-   user: { ... },
+  default: {
+    host: "localhost",
+    database: "demo",
+    username: "postgres",
+    password: "******",
+    port: 5432,
+  },
 });
 
-queue.use(client);
+queue.use(client); // 将数据库客户端实例添加至查询队列
 
 const { integer, string, boolean, email, jsonb } = Schema.types;
 
-// 定义表结构模型
+/** 定义表结构模型 */
+
 const schema = new Schema({
-   'id': integer({ primaryKey": true }),
-   'uid': integer,
-   'keywords': {
-      'state': boolean,
-      'area': string,
-      "createdAt": timestamp,
-   },
-   'list': [{
-      'id': integer({ sequence: true }),
-      'state': boolean,
-      'address': [{
-         'id': integer({ sequence: true }),
-         'name': string,
-         'createdAt': timestamp({ default: 'now()' }),
-         'updatedAt': timestamp({ default: 'now()' }),
-      }],
-      'test': {
-        'state': boolean,
-         'name': string,
+  id: integer({ primaryKey: true }),
+  uid: integer,
+  keywords: {
+    state: boolean,
+    area: string,
+    createdAt: timestamp,
+  },
+  list: [
+    {
+      id: integer({ sequence: true }),
+      state: boolean,
+      address: [
+        {
+          id: integer({ sequence: true }),
+          name: string,
+          createdAt: timestamp({ default: "now()" }),
+          updatedAt: timestamp({ default: "now()" }),
+        },
+      ],
+      test: {
+        state: boolean,
+        name: string,
       },
-      'createdAt': timestamp({ default: 'now()' }),
-      'updatedAt': timestamp({ default: 'now()' }),
-   }],
-   "area": string,
-   'state': boolean({ 'default': true }),
-   'modes': jsonb,
-   'email': email,
-   "createdAt": timestamp({ default: 'now()' }),
-   "updatedAt": timestamp({ default: 'now()' }),
+      createdAt: timestamp({ default: "now()" }),
+      updatedAt: timestamp({ default: "now()" }),
+    },
+  ],
+  area: string({ min: 10, max: 100 }),
+  state: boolean({ default: true }),
+  modes: jsonb,
+  email: email,
+  createdAt: timestamp({ default: "now()" }),
+  updatedAt: timestamp({ default: "now()" }),
 });
 
-const tasks = new Model('tasks', schema);
+const tasks = new Model("tasks", schema);
 
 const { $as, $in } = operator; // 查询操作符
 
-// 基于数据模型的结构化查询
+/** 基于数据模型的结构化查询 */
 const list = await tasks
-   .select('id', 'email', 'keywords', $as("uid", "tid"))
-   .where({ id: $in(50, 51) })
-   .and({ keywords: {} })
-   .or({ id: 5 })
-   .order({
-      "id": "desc",
-      "uid": "desc"
-   })
-   .limit(10);
+  .select("id", "email", "keywords", $as("uid", "tid"))
+  .where({ id: $in(50, 51) })
+  .and({ keywords: {} })
+  .or({ id: 5 })
+  .order({
+    id: "desc",
+    uid: "desc",
+  })
+  .limit(10);
 ```
+
+## 为什么要做这个项目？
+
+由于主流 ORM 倾向于广泛兼容各种类型的数据库，但是受 SQL 语法兼容性、复杂性、数据库版本差异等诸多因素的影响，不得不在功能和兼容性之间做出取舍，也只能做到跨平台一部分代码兼容。在实际应用中，很多通用 ORM 在面对某些复杂的或边缘查询用例时可读性差，代码看起来也显得很鸡肋。因此，Typeq 不打算追求大而全，未来将专注于以 Postgresql 数据库作为主要的适配目标，优化常见的高频查询用例，期望在性能和开发体验之间找到合适的平衡点，对于复杂用例建议使用 SQL 查询。
 
 ## 连接数据库
 
@@ -297,7 +300,6 @@ model.where(condition, ...).or(condition, ...).and(condition, ...);
 #### $lte()
 
 #### $lt()
-
 
 ### 其它操作符
 
