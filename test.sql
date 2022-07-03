@@ -12,13 +12,16 @@ INSERT INTO "public"."tasks" (
 VALUES (
     DEFAULT,
     6,
-    DEFAULT,
-    '[{"address": [{"name": ' abc ',"createdAt": now(),"updatedAt": now()}],"test": {},"state": true,"createdAt": now(),"updatedAt": now()},{"address": [{"name": ' || now() || ',"createdAt": now(),"updatedAt": now()},{"name": ' pppp ',"createdAt": now(),"updatedAt": now()}],"test": {},"state": false,"createdAt": now(),"updatedAt": now()}]'::jsonb,
-    now(),
+    json(
+      '{"state": false,"area": "\\k''k''kk\"k<script\n\t type=\"text/javascript\" src=\"/app.js\"></script>","createdAt": "' || now() || '"}'
+    ),
+    json(
+      '[{"address": [{"name": "aa","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"test": {},"state": true,"createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"address": [{"name": "' || now() || '","createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"name": "bbbb","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"test": {},"state": false,"createdAt": "' || now() || '","updatedAt": "' || now() || '"}]'
+    ),
+    'xxx',
     '{}'::jsonb,
     false,
     now(),
     now()
   )
-RETURNING "id",
-  "uid"
+RETURNING *

@@ -24,10 +24,10 @@ export interface TypeOptions {
 
 /** 类型选项方法集合 */
 export interface OptionMethods {
-  /**
-   * 类型验证
-   * @param entity 数据实体
-   */
-  type(entity: any): Return
-  [index: string]: (value: any, option: any, ctx: CTX, path: string) => Return
+  // /**
+  //  * 类型验证
+  //  * @param entity 数据实体
+  //  */
+  // type(entity: any): Return
+  [index: string]: (entity: any, option: any, ctx: CTX, path: string) => Return
 }

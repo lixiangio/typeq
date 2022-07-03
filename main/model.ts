@@ -14,9 +14,7 @@ interface Model extends Function {
 }
 
 /** 模型实例集合，供外部引用 */
-interface Models {
-  [name: string]: Model
-}
+interface Models { [name: string]: Model }
 
 export const models: Models = {};
 
@@ -125,7 +123,7 @@ export default function Model(table: string, schema: Schema): Model {
        * 更新单条
        * @param condition 更新数据
        */
-      update(condition: object): Promise<object[] | { rowCount:number }> {
+      update(condition: object): Promise<object[] | { rowCount: number }> {
 
         const chain = updateChain(schema, options, ctx => {
           if (ctx.RETURNING.length) {
@@ -161,7 +159,7 @@ export default function Model(table: string, schema: Schema): Model {
        * 删除数据，未指定返回值时，仅返回受影响的数据条数，否则返回 rows
        * @param condition 筛选条件
        */
-      delete(condition: object): Promise<object[] | { rowCount:number }> {
+      delete(condition: object): Promise<object[] | { rowCount: number }> {
 
         const chain = deleteChain(schema, options, ctx => {
           if (ctx.RETURNING.length) {

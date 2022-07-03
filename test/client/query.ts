@@ -59,9 +59,20 @@ test('test', async t => {
   VALUES (
       DEFAULT,
       6,
+      '{"state": false,"area": "\\k''k''kk\"k<script\n\t type=\"text/javascript\" src=\"/app.js\"></script>","createdAt": "now()"}'::jsonb,
+      '[{"address": [{"name": "aa","createdAt": "now()","updatedAt": "now()"}],"test": {},"state": true,"createdAt": "now()","updatedAt": "now()"},{"address": [{"name": "' || now() || '","createdAt": "now()","updatedAt": "now()"},{"name": "bbbb","createdAt": "now()","updatedAt": "now()"}],"test": {},"state": false,"createdAt": "now()","updatedAt": "now()"}]'::jsonb,
+      'xxx',
       '{}'::jsonb,
-      '[{"id": ' || nextval('public.tasks_list') || ',"address":  [{"id": ' || nextval('public.tasks_list') || ',"name": 111,"createdAt": now(),"updatedAt": now()}] ,"test": {},"state": true,"createdAt": now(),"updatedAt": now()},{"id": ' || nextval('public.tasks_list') || ',"address": [{"id": ' || nextval('public.tasks_list') || ',"name": X688df,"createdAt": now(),"updatedAt": now()},{"id": ' || nextval('public.tasks_list') || ',"name": pppp,"createdAt": now(),"updatedAt": now()}] ,"test": {},"state": false,"createdAt": now(),"updatedAt": now()}]'::jsonb,
+      false,
       now(),
+      now()
+    ),
+    (
+      DEFAULT,
+      6,
+      '{"state": false,"area": null,"createdAt": "now()"}'::jsonb,
+      '[]'::jsonb,
+      'xxx',
       '{}'::jsonb,
       false,
       now(),

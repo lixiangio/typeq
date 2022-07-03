@@ -7,38 +7,43 @@ const valueReg = /'/g;
 
 /**
  * 键名双引号过滤，将 key 中的双引号替换为空，防止截断注入
- * @param origin 
+ * @param entity 
  */
-export function safetyKey(origin: string): string {
+export function safetyKey(entity: string): string {
 
-  const safetyKey = origin.replace(keyReg, "");
-  const fieldKey = safetyKey.split('.').join('"."');
-
-  return `"${fieldKey}"`;
+  const safetyKey = entity.replace(keyReg, "");
+  return safetyKey.split('.').join('"."');
 
 }
 
 /**
  * 将字符串中的单引号替换为双单引号，防止截断注入
  * 在 SQL 中两个连续的单引号会被视为普通的单引号字符
- * @param origin
+ * @param string 不安全的字符串
  */
-export function safetyValue(origin: string): string {
+export function sqlString(string: string): string {
 
-  // const safetyValue = String(origin).replace(valueReg, "''");
-
-  return String(origin).replace(valueReg, "''");
+  return String(string).replace(valueReg, "''");
 
 }
 
 /**
- * json 转 SQL 字符串
- * @param origin 
+ * 将 SQL 字符串 JSON 语法中的双引号、反斜杠等特殊保留字符替换为合法的 SQL JSON 字符串值
+ * @param sql SQL 字符串
  */
-export function safetyJson(origin: object): string {
+export function jsonString(sql: string) {
 
-  const safetyJson = JSON.stringify(origin).replace(valueReg, "''");
+  return sql.replace(/\\/g, '\\\\').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/"/g, '\\"');
 
-  return `'${safetyJson}'`;
+}
+
+
+/**
+ * 将 JSON 对象转换为 SQL 字符串
+ * @param entity 
+ */
+export function safetyJson(entity: object): string {
+
+  return JSON.stringify(entity).replace(valueReg, "''");
 
 }

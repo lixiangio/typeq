@@ -35,7 +35,7 @@ export const tasks0 = {
             'test': {},
         }
     ],
-    area: $sql('now()'),
+    area: "xxx",
     state: false
 };
 export const tasks1 = {
@@ -52,7 +52,7 @@ export const tasks1 = {
             'state': true,
             'address': [
                 {
-                    name: 111,
+                    name: '111',
                     admin: "666"
                 }
             ],
@@ -84,6 +84,6 @@ export const tasks2 = {
     },
     email: 'abs@xx.cc',
     list: [],
-    area: $sql('now()'),
+    area: "xxx",
     state: false
 };

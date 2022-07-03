@@ -1,81 +1,88 @@
 import Type from './Type.js';
 import Struct, { type StructFunction, type StructObject } from './Struct.js';
-import { safetyValue } from '../safety.js';
+import { sqlString, jsonString } from '../safety.js';
 import { methodKey } from '../common.js';
 import isISO8601 from '../../validator/isISO8601.js';
 
-const baseMethods = {
+const CommonMethods = {
   /** 默认值 */
-  default(entity, defaultValue) {
-    if (entity === undefined) {
+  default(value, defaultValue) {
+    if (value === undefined) {
       return { value: defaultValue };
     } else {
-      return { value: entity, next: true };
+      return { value, next: true };
     }
   },
   /** 可选值 */
-  optional(entity, isOptional: boolean) {
-    if (entity === undefined) {
+  optional(value, isOptional: boolean) {
+    if (value === undefined) {
       if (isOptional === true) {
-        return { value: entity };
+        return { value };
       } else {
         return { error: " value is not allowed to be empty" };
       }
     } else {
-      return { value: entity, next: true };
+      return { value, next: true };
     }
   },
 }
 
+const AfterMethods = {
+  /** 返回至 SQL */
+  sql(value: string) {
+    return { value: `'${value}'` };
+  },
+  /** 返回至 JSON */
+  json(value: string) {
+    return { value: `"${value}"` };
+  }
+}
 
-const integerMethods = {
+const IntegerMethods = {
   /** JSON 序列 */
-  sequence(entity: number, isSequence: boolean, info, path: string) {
-    if (entity === undefined && isSequence === true) {
+  sequence(value: number, isSequence: boolean, info, path: string) {
+    if (value === undefined && isSequence === true) {
       const { schema, table } = info;
       return { value: `' || nextval('${schema}.${table}.${path}') || '` };
     }
-    return { value: entity, next: true };
+    return { value, next: true };
   },
-  ...baseMethods,
-  type(entity: number) {
-    if (Number.isInteger(entity)) {
-      return { value: entity, next: true };
+  ...CommonMethods,
+  type(value: number) {
+    if (Number.isInteger(value)) {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 integer 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 integer 类型，实际赋值为 '${value}'` };
     }
   },
-  // "*"() {
-  //   return { value: '' };
-  // },
   /**限制最小值 */
-  min(entity: number, min: number) {
-    if (entity < min) {
+  min(value: number, min: number) {
+    if (value < min) {
       return { error: `值不能小于 "${min}" 个字符` };
     } else {
-      return { value: entity, next: true }
+      return { value, next: true }
     }
   },
   /** 限制最大值 */
-  max(entity: number, max: number) {
-    if (entity > max) {
+  max(value: number, max: number) {
+    if (value > max) {
       return { error: `值不能大于 "${max}" 个字符` };
     } else {
-      return { value: entity, next: true }
+      return { value, next: true }
     }
   },
 }
 
-export const integer = Type('integer', integerMethods);
-export const bigint = Type('bigint', integerMethods);
+export const integer = Type('integer', IntegerMethods);
+export const bigint = Type('bigint', IntegerMethods);
 
 export const float = Type('float', {
-  ...baseMethods,
-  type(entity: number) {
-    if (isNaN(entity) === false && parseFloat(String(entity)) !== NaN) {
-      return { value: entity, next: true };
+  ...CommonMethods,
+  type(value: number) {
+    if (isNaN(value) === false && parseFloat(String(value)) !== NaN) {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 float 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 float 类型，实际赋值为 '${value}'` };
     }
   }
 })
@@ -83,93 +90,111 @@ export const float = Type('float', {
 export const number = float;
 
 
-
-const stringMethods = {
-  ...baseMethods,
-  type(entity: string) {
-    if (typeof entity === 'string') {
-      return { value: safetyValue(entity), next: true };
+const StringMethods = {
+  ...CommonMethods,
+  type(value: string) {
+    if (typeof value === 'string') {
+      return { value: sqlString(value), next: true };
     } else {
-      return { error: `值必须为 string 类型，实际赋值为 '${entity}'` };
+      console.log(value)
+      return { error: `值必须为 string 类型，实际赋值为 '${value}'` };
     }
   },
   /**限制最小长度 */
-  min(entity: string, min: number) {
-    if (entity.length < min) {
+  min(value: string, min: number) {
+    if (value.length < min) {
       return { error: `值长度不能小于 "${min}" 个字符` };
     } else {
-      return { value: entity, next: true }
+      return { value, next: true }
     }
   },
   /** 限制最大长度 */
-  max(entity: string, max: number) {
-    if (entity.length > max) {
+  max(value: string, max: number) {
+    if (value.length > max) {
       return { error: `值长度不能大于 "${max}" 个字符` };
     } else {
-      return { value: entity, next: true }
+      return { value, next: true }
     }
   },
   /** 正则 */
-  reg(entity: string, reg: RegExp) {
-    if (entity.search(reg) === -1) {
+  reg(value: string, reg: RegExp) {
+    if (value.search(reg) === -1) {
       return { error: '正则表达式匹配失败' };
     } else {
-      return { value: entity, next: true };
+      return { value, next: true };
     }
-  },
+  }
 };
 
-export const char = Type('char', stringMethods);
-export const varchar = Type('varchar', stringMethods);
+const StringAfterMethods = {
+  /** 返回至 SQL */
+  sql(value: string) {
+    if (value === undefined) {
+      return { value: "DEFAULT" };
+    } else {
+      return { value: `'${value}'` };
+    }
+  },
+  /** 返回至 JSON */
+  json(value: string) {
+    if (value === undefined) {
+      return { value: null };
+    } else {
+      return { value: `"${jsonString(value)}"` };
+    }
+  }
+}
+
+export const char = Type('char', StringMethods, StringAfterMethods);
+export const varchar = Type('varchar', StringMethods, StringAfterMethods);
 
 export const string = varchar;
 export const text = varchar;
 
-
-
 export const boolean = Type('boolean', {
-  ...baseMethods,
-  type(entity: boolean) {
-    if (typeof entity === 'boolean') {
-      return { value: entity, next: true };
+  ...CommonMethods,
+  type(value: boolean) {
+    if (typeof value === 'boolean') {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 boolean 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 boolean 类型，实际赋值为 '${value}'` };
     }
   }
 })
 
 export const date = Type('date', {
-  ...baseMethods,
-  type(entity: Date) {
-    const date = Date.parse(String(entity));
+  ...CommonMethods,
+  type(value: Date) {
+    const date = Date.parse(String(value));
     if (isNaN(date) === false) {
-      return { value: `'${entity}'`, next: true };
+      return { value, next: true };
     } else {
-      return { error: `值必须为 date 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 date 类型，实际赋值为 '${value}'` };
     }
   }
-})
+}, AfterMethods);
 
 export const timestamp = Type('timestamp', {
-  ...baseMethods,
+  ...CommonMethods,
   type(entity: Date) {
     // if (entity instanceof Date) {
     //   return { value: `'${entity.toISOString()}'`, next: true };
     // } 
-    if (isISO8601(String(entity))) {
-      return { value: `'${entity}'`, next: true };
+    const value = String(entity);
+    if (isISO8601(value)) {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 timestamp 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 timestamp 类型，实际赋值为 '${value}'` };
     }
   }
-})
+}, AfterMethods);
 
 export const range = Type('range', {
-  ...baseMethods,
-  type(entity: number[]) {
-    if (Array.isArray(entity)) {
-      if (entity.length == 2) {
-        const [a, b] = entity;
+  ...CommonMethods,
+  type(value: number[]) {
+    if (Array.isArray(value)) {
+      if (value.length == 2) {
+        const [a, b] = value;
         if (typeof a === 'number' && typeof b === 'number') {
           return { value: `'[${b}, ${b}]'`, next: true };
         } else {
@@ -179,46 +204,44 @@ export const range = Type('range', {
         return { error: `range 长度必须等于 2` };
       }
     } else {
-      return { error: `值必须为 range 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 range 类型，实际赋值为 '${value}'` };
     }
   }
-})
+});
 
-/**
- * integer 数组
- */
+/** integer 数组 */
 export const integers = Type('integer[]', {
-  ...baseMethods,
-  type(entity: number[]) {
-    if (Array.isArray(entity)) {
-      for (const item of entity) {
+  ...CommonMethods,
+  type(value: number[]) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
         if (Number.isInteger(item) === false) {
           return { error: `数组内成员必须为 integer 类型` };
         }
       }
-      return { value: `{${entity.join()}}`, next: true };
+      return { value: `{${value.join()}}`, next: true };
     } else {
-      return { error: `值必须为 integer[] 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 integer[] 类型，实际赋值为 '${value}'` };
     }
   }
-})
+});
 
 export const json = Struct('json', {
-  type(entity: object) {
-    if (typeof entity === 'object') {
-      return { value: entity, next: true };
+  type(value: object) {
+    if (typeof value === 'object') {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 json 类型，实际赋值为 '${json}'` };
+      return { error: `值必须为 json 类型，实际赋值为 '${value}'` };
     }
   }
 });
 
 export const jsonb = Struct('jsonb', {
-  type(entity: object) {
-    if (typeof entity === 'object') {
-      return { value: entity, next: true };
+  type(value: object) {
+    if (typeof value === 'object') {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 jsonb 类型，实际赋值为 '${json}'` };
+      return { error: `值必须为 jsonb 类型，实际赋值为 '${value}'` };
     }
   }
 });
@@ -227,25 +250,25 @@ const { toString } = Object.prototype;
 
 /** 值为严格对象类型 */
 export const object = Struct("jsonb", {
-  type(entity: object) {
-    if (toString.call(entity) === '[object Object]') {
-      return { value: entity, next: true };
+  type(value: object) {
+    if (toString.call(value) === '[object Object]') {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 object 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 object 类型，实际赋值为 '${value}'` };
     }
   }
-})
+});
 
 /** 值为 array 类型 */
 export const array = Struct('jsonb', {
-  type(entity: unknown[]) {
-    if (Array.isArray(entity)) {
-      return { value: entity, next: true };
+  type(value: unknown[]) {
+    if (Array.isArray(value)) {
+      return { value, next: true };
     } else {
-      return { error: `值必须为 array 类型，实际赋值为 '${entity}'` };
+      return { error: `值必须为 array 类型，实际赋值为 '${value}'` };
     }
   }
-})
+});
 
 /**
  * 可选类型辅助函数
@@ -267,7 +290,9 @@ export function optional(node: StructFunction | StructObject | object | any[]) {
 
     // node 为类型实例对象
     if (typeof node === 'object') {
+
       const { name, options } = node as StructObject;
+
       return {
         name,
         options: {
@@ -275,17 +300,21 @@ export function optional(node: StructFunction | StructObject | object | any[]) {
           optional: true
         },
         [methodKey]: method
-      }
+      };
+
     }
 
     // node 为静态类型函数
     else if (typeof node === 'function') {
+
       const { name } = node as StructFunction;
+
       return {
         name,
         options: { optional: true },
         [methodKey]: method
-      }
+      };
+
     }
 
   } else {

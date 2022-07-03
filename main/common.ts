@@ -73,11 +73,11 @@ export interface BaseChain<T> extends Promise<T> {
   and?: (...fields: Condition[]) => this
   or?: (...fields: Condition[]) => this
   /**
-   * 返回字段
+   * 返回指定字段
    */
   return?: (...select: string[] | Function[]) => this
   /**
-   * 排除字段
+   * 字段未排除的字段
    */
   _return?: (...select: string[]) => this
 }

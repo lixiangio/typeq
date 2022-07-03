@@ -12,7 +12,7 @@ test('insert', async t => {
 
   const result = await tasks(options)
     .insert(tasks0)
-    .return('id', 'uid');
+    .return('id');
 
   t.ok(result.id);
 

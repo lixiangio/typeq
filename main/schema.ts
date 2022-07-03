@@ -14,7 +14,7 @@ interface Field {
   struct?: object | any[]
   /** 可选字段 */
   optional?: boolean
-  [methodKey]: Function
+  [methodKey]?: Function
 }
 
 /** 实体表字段集合 */
@@ -49,21 +49,38 @@ export default class Schema {
         // 将带有 methodKey 属性的类型对象或类型函数定义为与之对应的类型选项
         if (method) {
 
-          const field: Field = {
-            type: node.name,
-            [methodKey](entity, ctx, name) {
+          const { afters } = node;
+
+          const field: Field = { type: node.name };
+
+          const { struct, options } = node;
+
+          if (struct) {
+
+            field.struct = struct;
+            field[methodKey] = (entity, ctx, name) => {
               const { error, value } = method(entity, ctx, name);
               if (error) {
                 return { error: `${name} ${error}` };
               } else {
+                return { value: `json('${value}')` };
+              }
+            }
+
+          } else {
+
+            field[methodKey] = (entity, ctx, name) => {
+              const { error, value } = method(entity, ctx, name);
+              if (error) {
+                return { error: `${name} ${error}` };
+              } else if (afters) {
+                return afters.sql(value)
+              } else {
                 return { value };
               }
             }
-          };
 
-          const { struct, options } = node;
-
-          if (struct) field.struct = struct;
+          }
 
           if (options) {
 
@@ -111,7 +128,7 @@ export default class Schema {
               if (error) {
                 return { error: `${name}${error}` };
               } else {
-                return { value: `'${value}'::jsonb` };
+                return { value: `json('${value}')` };
               }
             }
           };
@@ -132,7 +149,7 @@ export default class Schema {
               if (error) {
                 return { error: `${name}${error}` };
               } else {
-                return { value: `'${value}'::jsonb` };
+                return { value: `json('${value}')` };
               }
             }
           };
@@ -170,7 +187,7 @@ export default class Schema {
       fields.createdAt = {
         type: 'timestamp',
         default: 'now()',
-        [methodKey]: timestamp,
+        [methodKey]: timestamp
       };
 
     }
@@ -180,7 +197,7 @@ export default class Schema {
       fields.updatedAt = {
         type: 'timestamp',
         default: 'now()',
-        [methodKey]: timestamp,
+        [methodKey]: timestamp
       };
 
     }

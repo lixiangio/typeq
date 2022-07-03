@@ -15,23 +15,23 @@ export const schema = new Schema({
       optional: true,
       length: 200
     }),
-    createdAt: timestamp({ default: 'now()' }),
+    createdAt: timestamp({ default: `' || now() || '` }),
   }),
   list: [
     {
       // id: integer({ sequence: true }),
       address: optional([
         {
-          id: integer({ sequence: true }),
+          // id: integer({ sequence: true }),
           name: string({ min: 2, max: 10, }),
-          createdAt: timestamp({ default: 'now()' }),
-          updatedAt: timestamp({ default: 'now()' }),
+          createdAt: timestamp({ default: `' || now() || '` }),
+          updatedAt: timestamp({ default: `' || now() || '` }),
         }
       ]),
       test: {},
       state: boolean,
-      createdAt: timestamp({ default: 'now()' }),
-      updatedAt: timestamp({ default: 'now()' }),
+      createdAt: timestamp({ default: `' || now() || '` }),
+      updatedAt: timestamp({ default: `' || now() || '` }),
     }
   ],
   area: string({ comment: "地址" }),

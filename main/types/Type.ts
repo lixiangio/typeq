@@ -13,6 +13,7 @@ interface TypeObject {
   name: string
   /** 类型选项 */
   options?: TypeOptions
+  afters?: OptionMethods
   /** 类型方法 */
   [methodKey]?: Method
 }
@@ -22,9 +23,10 @@ const { hasOwnProperty, toString } = Object.prototype;
 /**
  * 创建类型函数
  * @param name 类型名称
- * @param methods 验证方法
+ * @param methods 验证方法有序集合
+ * @param methods 后置验证方法
  */
-export default function Type(name: string, methods: OptionMethods): TypeFunction {
+export default function Type(name: string, methods: OptionMethods, afters?: OptionMethods): TypeFunction {
 
   /**
    * 类型声明方法
@@ -34,11 +36,9 @@ export default function Type(name: string, methods: OptionMethods): TypeFunction
 
     if (toString.call(options) !== '[object Object]') throw new Error("类型选项必须要为对象结构");
 
-    interface QueueItem {
-      method: Function, param: any
-    }
+    options = { type: true, ...options };
 
-    options.type = true;
+    interface QueueItem { method: Function, param: any }
 
     const queue: QueueItem[] = [];
 
@@ -60,6 +60,7 @@ export default function Type(name: string, methods: OptionMethods): TypeFunction
     return {
       name,
       options,
+      afters,
       /**
        * 数据处理函数
        */
@@ -70,9 +71,7 @@ export default function Type(name: string, methods: OptionMethods): TypeFunction
 
         if (set) return { value: set(entity) };
 
-        // console.log(queue)
-
-        // 执行类型选项中的队列函数，上一个函数的返回值会作为下一个函数的输入参数
+        // 执行类型选项对应的的类型函数队列，上一个函数的返回值会作为下一个函数的参数输入
         for (const { method, param } of queue) {
 
           const { error, next, value } = method(entity, param, tableinfo, path);
@@ -95,16 +94,20 @@ export default function Type(name: string, methods: OptionMethods): TypeFunction
   }
 
   Object.defineProperty(type, 'name', { value: name });
+  Object.defineProperty(type, 'after', { value: afters });
 
   /** 无参数状态下，仅做类型检查 */
   Object.defineProperty(type, methodKey, {
-    value(entity) {
+    value(entity: any) {
+
       const { error, value } = methods.type(entity);
+
       if (error) {
-        return { error }
+        return { error };
       } else {
         return { value };
       }
+
     }
   });
 

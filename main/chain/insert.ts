@@ -156,7 +156,7 @@ export default function (schema: Schema, options: Options, result: Result): Inse
             if (fields[key]) {
                RETURNING.push(`"${key}"`);
             } else {
-               throw ctx.error = new TypeError(`${key}字段无效`);
+               throw ctx.error = new TypeError(`模型中找不到 ${key} 字段`);
             }
          }
 

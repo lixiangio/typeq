@@ -10,7 +10,7 @@ export default {
   $merge(value: object) {
     return function (field: string) {
       const json = safetyJson(value);
-      return `"${field}" || ${json}`;
+      return `"${field}" || '${json}'::jsonb`;
     }
   },
   /**
@@ -19,7 +19,7 @@ export default {
   $set(path: string, value, missing = true) {
     return function (field: string) {
       const json = safetyJson(value);
-      return `jsonb_set("${field}", '${path}', ${json}, ${missing})`
+      return `jsonb_set("${field}", '${path}', '${json}'::jsonb, ${missing})`
     }
   },
   /**
@@ -28,7 +28,7 @@ export default {
   $insert(field: string, path: string, value, after = false) {
     return function () {
       const json = safetyJson(value);
-      return `jsonb_insert("${field}", '${path}', ${json}, ${after})`;
+      return `jsonb_insert("${field}", '${path}', '${json}'::jsonb, ${after})`;
     }
   },
   /**
@@ -37,7 +37,7 @@ export default {
   $insertByPath(path: string, value) {
     return function (field: string) {
       const json = safetyJson(value);
-      return `jsonb_insert("${field}", '${path}', ${json})`;
+      return `jsonb_insert("${field}", '${path}', '${json}'::jsonb)`;
     }
   },
   /**
@@ -46,7 +46,7 @@ export default {
   $insertFirst(value) {
     return function (field: string) {
       const json = safetyJson(value);
-      return `jsonb_insert("${field}", '{0}', ${json})`;
+      return `jsonb_insert("${field}", '{0}', '${json}'::jsonb)`;
     }
   },
   /**
@@ -54,6 +54,6 @@ export default {
    * @param values 一个或多个值
    */
   $includes(...values) {
-    return () => `@> ${safetyJson(values)}::jsonb`;
+    return () => `@> '${safetyJson(values)}'::jsonb`;
   },
 }

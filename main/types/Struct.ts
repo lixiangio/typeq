@@ -18,36 +18,47 @@ export interface StructObject {
   options?: TypeOptions
   /** 类型方法 */
   [methodKey]?: Method
+
 }
 
 const { toString } = Object.prototype;
 
 /**
  * 类型校验、合并输出安全的 JSON 字符串
- * @param struct 结构类型
+ * @param type 结构类型
  * @param entity 实体数据
  * @param ctx 查询上下文
  * @param path 数据路径
  */
-function jsonConverter(struct: object | any[], entity: object | any[], ctx: CTX, path: string): Return {
+function jsonConverter(type: object | any[], entity: object | any[], ctx: CTX, path: string): Return {
 
-  const method = struct[methodKey];
+  const method = type[methodKey];
 
   if (method) {
 
-    // if (struct.name === 'string') {}
+    // if (typeof entity === 'function') {
+    //   console.log(entity)
+    // }
 
-    return method(entity, ctx, path);
-    
+    const { error, value } = method(entity, ctx, path);
+
+    if (error) return { error };
+
+    if (type.afters) {
+      return type.afters.json(value);
+    } else {
+      return { value };
+    }
+
   }
 
   // struct 选项值为对象
-  else if (typeof struct === "object") {
+  else if (typeof type === "object") {
 
     // 数组结构
-    if (Array.isArray(struct)) {
+    if (Array.isArray(type)) {
       if (Array.isArray(entity)) {
-        return jsonArray(struct as any[], entity as any[], ctx, path);
+        return jsonArray(type as any[], entity as any[], ctx, path);
       } else {
         return { error: "值必须为 array 类型" };
       }
@@ -58,7 +69,7 @@ function jsonConverter(struct: object | any[], entity: object | any[], ctx: CTX,
 
       if (toString.call(entity) === '[object Object]') {
 
-        return jsonObject(struct as object, entity as object, ctx, path);
+        return jsonObject(type as object, entity as object, ctx, path);
 
       } else {
 
@@ -108,8 +119,8 @@ function jsonObject(struct: object, entity: object, ctx: CTX, path: string): Ret
  */
 function jsonArray(struct: any[], entity: any[], ctx: CTX, path: string): Return {
 
-  let itemKey = 0;
   const items = [];
+  let itemKey = 0;
 
   // struct 为单数时为弹性匹配，可匹配零个、一个或多个
   if (struct.length === 1) {
@@ -175,47 +186,31 @@ export default function Struct(name: string, methods: OptionMethods): StructFunc
       options,
       /**
        * 数据处理函数
-       * @param entity 实体数据
+       * @param value 实体数据
        */
-      [methodKey](entity, ctx, path) {
+      [methodKey](value, ctx, path: string) {
 
-        // const { set, default: _default } = options;
-
-        // if (set) { value = set(value); }
-
-        // // 空值处理选项
-        // else if (value === undefined) {
-
-        //   // 填充默认值
-        //   if (hasOwnProperty.call(options, 'default')) {
-        //     value = _default;
-        //   } else {
-        //     return { error: " value is not allowed to be empty" };
-        //   }
-
-        // }
-
-        const result = typeMethod(entity); // 基础类型校验
-
+        const result = typeMethod(value); // 基础类型校验
         if (result.error) {
           return result;
         } else {
-          return jsonConverter(struct, entity, ctx, path);
+          return jsonConverter(struct, value, ctx, path);
         }
 
       }
     };
+
   }
 
   Object.defineProperty(type, 'name', { value: name });
 
   Object.defineProperty(type, methodKey, {
-    value(entity: any) {
-      const { error } = typeMethod(entity);
+    value(value: any) {
+      const { error } = typeMethod(value);
       if (error) {
         return { error };
       } else {
-        return { value: safetyJson(entity) };
+        return { value: safetyJson(value) };
       }
     }
   });

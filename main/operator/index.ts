@@ -1,4 +1,4 @@
-import { safetyKey, safetyValue, safetyJson } from '../safety.js';
+import { safetyKey, sqlString, safetyJson } from '../safety.js';
 import jsonb from './jsonb.js';
 
 type Func = () => string;
@@ -15,36 +15,36 @@ export default {
    * @param alias 别名
    */
   $as(field: string, alias: string): Func {
-    return () => `${safetyKey(field)} AS "${alias.replace(/"/g, "")}"`;
+    return () => `"${safetyKey(field)}" AS "${alias.replace(/"/g, "")}"`;
   },
   $count() { return () => `count(*)::integer`; },
   $eq(value: number) {
-    return () => `= ${safetyValue(value)}`
+    return () => `= ${sqlString(value)}`
   },
   $ne(value: number) {
-    return () => `!= ${safetyValue(value)}`;
+    return () => `!= ${sqlString(value)}`;
   },
   $gte(value: number) {
-    return () => `>= ${safetyValue(value)}`
+    return () => `>= ${sqlString(value)}`
   },
   $gt(value: number) {
-    return () => `> ${safetyValue(value)}`
+    return () => `> ${sqlString(value)}`
   },
   $lte(value: number) {
-    return () => `<= ${safetyValue(value)}`
+    return () => `<= ${sqlString(value)}`
   },
   $lt(value: number) {
-    return () => `< ${safetyValue(value)}`
+    return () => `< ${sqlString(value)}`
   },
   $not(value) {
-    return () => `IS NOT ${safetyValue(value)}`
+    return () => `IS NOT ${sqlString(value)}`
   },
   $in(...values) {
-    values = values.map(value => safetyValue(value));
+    values = values.map(value => sqlString(value));
     return () => `IN (${values.join(`, `)})`;
   },
   $notIn(...values) {
-    values = values.map(value => safetyValue(value))
+    values = values.map(value => sqlString(value))
     return () => `NOT IN (${values.join(`, `)})`
   },
   /**
@@ -53,7 +53,7 @@ export default {
    * @param end 结束值
    */
   $scope(start: number, end: number) {
-    return (field) => `>= ${safetyValue(start)} AND ${safetyKey(field)} < ${safetyValue(end)}`;
+    return (field) => `>= ${sqlString(start)} AND "${safetyKey(field)}" < ${sqlString(end)}`;
   },
   /**
    * 仅用于range范围数据类型
@@ -62,102 +62,102 @@ export default {
    */
   $range(start: number, end: number) {
     return function () {
-      return [safetyValue(start), safetyValue(end)];
+      return [sqlString(start), sqlString(end)];
     }
   },
   $is(value) {
     return function () {
-      return `IS ${safetyValue(value)}`
+      return `IS ${sqlString(value)}`
     }
   },
   $like(value: string) {
     return function () {
-      return `LIKE ${safetyValue(value)}`
+      return `LIKE ${sqlString(value)}`
     }
   },
   $notLike(value: string) {
     return function () {
-      return `NOT LIKE ${safetyValue(value)}`
+      return `NOT LIKE ${sqlString(value)}`
     }
   },
   $iLike(value) {
     return function () {
-      return `ILIKE ${safetyValue(value)}`
+      return `ILIKE ${sqlString(value)}`
     }
   },
   $notILike(value) {
     return function () {
-      return `NOT ILIKE ${safetyValue(value)}`
+      return `NOT ILIKE ${sqlString(value)}`
     }
   },
   $regexp(value) {
     return function () {
-      return `~ ${safetyValue(value)}`
+      return `~ ${sqlString(value)}`;
     }
   },
   $notRegexp(value) {
     return function () {
-      return `!~ ${safetyValue(value)}`
+      return `!~ ${sqlString(value)}`;
     }
   },
   $iRegexp(value) {
     return function () {
-      return `~* ${safetyValue(value)}`
+      return `~* ${sqlString(value)}`;
     }
   },
   $notIRegexp(value) {
     return function () {
-      return `!~* ${safetyValue(value)}`
+      return `!~* ${sqlString(value)}`;
     }
   },
   $between(value) {
     return function () {
-      return `BETWEEN ${safetyValue(value)}`
+      return `BETWEEN ${sqlString(value)}`;
     }
   },
   $notBetween(value) {
     return function () {
-      return `NOT BETWEEN ${safetyValue(value)}`
+      return `NOT BETWEEN ${sqlString(value)}`;
     }
   },
   $overlap(value) {
     return function () {
-      return `&& ${safetyValue(value)}`
+      return `&& ${sqlString(value)}`;
     }
   },
   $contains(value) {
     return function () {
-      return `@> ${safetyJson(value)}`
+      return `@> '${safetyJson(value)}'`;
     }
   },
   $contained(value) {
     return function () {
-      return `<@ ${safetyJson(value)}`
+      return `<@ '${safetyJson(value)}'`;
     }
   },
   $adjacent(value) {
     return function () {
-      return `-|- ${safetyValue(value)}`
+      return `-|- ${sqlString(value)}`
     }
   },
   $strictLeft(value) {
     return function () {
-      return `<< ${safetyValue(value)}`
+      return `<< ${sqlString(value)}`
     }
   },
   $strictRight(value) {
     return function () {
-      return `>> ${safetyValue(value)}`
+      return `>> ${sqlString(value)}`
     }
   },
   $noExtendRight(value) {
     return function () {
-      return `&< ${safetyValue(value)}`
+      return `&< ${sqlString(value)}`
     }
   },
   $noExtendLeft(value) {
     return function () {
-      return `&> ${safetyValue(value)}`
+      return `&> ${sqlString(value)}`
     }
   },
   ...jsonb,
