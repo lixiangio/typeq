@@ -14,9 +14,9 @@ test('query insert', async t => {
       })
    ]);
 
-   const { data, error } = schema.verify(result.rows);
+   const { value, error } = schema.verify(result.rows);
 
-   t.ok(data, error);
+   t.ok(value, error);
 
 })
 
@@ -37,9 +37,9 @@ test('query select', async t => {
       })
    ]);
 
-   const { data, error } = schema.verify(result.rows)
+   const { value, error } = schema.verify(result.rows)
 
-   t.ok(data, error);
+   t.ok(value, error);
 
 })
 

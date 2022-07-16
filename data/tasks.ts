@@ -4,10 +4,10 @@ const { $sql } = operator;
 
 export const tasks0 = {
   uid: 6,
-  email: 'abs@xx.cc',
+  email: "abs@xx.cc",
   keywords: {
     state: false,
-    area: `\\k'k'kk"k<script\n\t type="text/javascript" src="/app.js"></script>`
+    area: `\\k'kkk"k<script\n\t type="text/javascript" src="/app.js"></script>`
   },
   list: [
     {
@@ -27,7 +27,7 @@ export const tasks0 = {
       'state': false,
       'address': [
         {
-          name: $sql(`'|| now() ||'`)
+          name: $sql(`now()`)
         },
         {
           name: "bbbb",

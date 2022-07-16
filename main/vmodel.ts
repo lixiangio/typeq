@@ -11,7 +11,7 @@ export default class VModel {
    * @param options 模型选项
    * @param client 客户端
    */
-  constructor(options: object, models: object | Function, join: object) {
+  constructor(options: object) {
 
     // const { joinType } = options;
 

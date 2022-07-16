@@ -7,14 +7,13 @@ const { tasks } = models;
 test('update', async t => {
 
   const result = await tasks
-    .updatePk(6)
+    .updatePk(1)
     .set({
       keywords: {
-        area: `888`,
+        area: '888',
         state: true
       },
-      // area: "11",
-      area: null,
+      area: "11",
       state: true
     })
 
@@ -32,8 +31,7 @@ test('updatePk null', async t => {
         area: `888`,
         state: true
       },
-      // area: "11",
-      area: null,
+      area: "11",
       state: true
     });
 

@@ -12,10 +12,10 @@
         "./main/index"
       ],
       "typeq/pgclient": [
-        "./extensions/pgclient.js"
+        "./pgclient.js"
       ],
-      "typeq/validator/*": [
-        "./validator/*"
+      "typeq/types/*": [
+        "./types/*"
       ]
     },
   }

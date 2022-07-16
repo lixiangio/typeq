@@ -1,5 +1,5 @@
 import pg from 'pg';
-import Queue from '../main/queue.js';
+import type { queue as Queue } from 'typeq';
 
 const { Pool, types } = pg;
 
@@ -64,7 +64,7 @@ export default function (config: Config) {
     queue.delete(context);
 
     queue.query(context);
-    
+
   }
 
 }

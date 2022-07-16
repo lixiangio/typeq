@@ -1,23 +1,36 @@
 import where from './where.js';
 import { findQueue } from '../queue.js';
-import type { BaseChain, Options, Result } from '../common.js';
+import type { Condition, CTX, Options, Data } from '../common.js';
 import Schema from '../schema.js';
 
 const directions = { 'desc': "DESC", 'asc': "ASC" };
 
 interface Directions { [field: string]: 'desc' | 'asc' }
 
-interface Chain extends Partial<BaseChain> {
-   group: (...fields: string[]) => FindPromise
-   order: (options: Directions) => FindPromise
-   offset: (value: number) => FindPromise
-   limit: (value: number) => FindPromise
-   count: (isNewQueue: boolean) => FindPromise
-}
+export type FindPromise<T = Data[]> = Promise<T> & Partial<{
+   ctx: CTX
+   /** where 逻辑过滤条件，等同于 and */
+   where: (...fields: Condition[]) => FindPromise<T>
+   /** and 逻辑过滤条件 */
+   and?: (...fields: Condition[]) => FindPromise<T>
+   /** or 逻辑过滤条件 */
+   or?: (...fields: Condition[]) => FindPromise<T>
+   /** 返回指定字段，未指定字段时，返回全部字段  */
+   return: (...fields: string[]) => FindPromise<T>
+   /** 不返回指定字段 */
+   _return: (...fields: string[]) => FindPromise<T>
+   group: (...fields: string[]) => FindPromise<T>
+   /** 指定字段的排序方式 */
+   order: (options: Directions) => FindPromise<T>
+   /** 返回数据的起始位置 */
+   offset: (value: number) => FindPromise<T>
+   /** 限制返回数量 */
+   limit: (value: number) => FindPromise<T>
+   /** 统计数据总量 */
+   count: (isNewQueue?: boolean) => FindPromise<T>
+}>;
 
-export type FindPromise = Promise<any> & Partial<Chain>
-
-export default function (schema: Schema, options: Options, result: Result): FindPromise {
+export default function <T>(schema: Schema, options: Options, result: (ctx: CTX) => any): FindPromise<T> {
 
    const SELECT = [], ORDER = [], GROUP = [];
 
@@ -34,7 +47,7 @@ export default function (schema: Schema, options: Options, result: Result): Find
       error: undefined
    };
 
-   const schemaFields = schema.fields;
+   const { fields: schemaFields } = schema;
 
    const promise = Promise.resolve().then(() => {
       const { error } = ctx;
@@ -45,7 +58,7 @@ export default function (schema: Schema, options: Options, result: Result): Find
       }
    });
 
-   const chain: Chain = {
+   const chain = {
       ctx,
       where,
       order(options: Directions) {
@@ -110,17 +123,13 @@ export default function (schema: Schema, options: Options, result: Result): Find
        * 返回指定列
        * @param fields 包含字段
        */
-      return(...fields) {
+      return(...fields: string[]) {
 
          for (const field of fields) {
-            if (typeof field === 'string') {
-               if (schemaFields[field]) {
-                  SELECT.push(`"${field}"`);
-               } else {
-                  throw ctx.error = new Error(`${field} 字段不存在`);
-               }
-            } else if (typeof field === 'function') {
-               SELECT.push(field());
+            if (schemaFields[field]) {
+               SELECT.push(`"${field}"`);
+            } else {
+               throw ctx.error = new Error(`${field} 字段不存在`);
             }
          }
 
@@ -144,7 +153,7 @@ export default function (schema: Schema, options: Options, result: Result): Find
       },
       /**
        * 获取数据总数，复制当前实例上下文并创建新的查询
-       * @param newQueue 是否创建新 Promise 实例
+       * @param isNewQueue 是否创建新 Promise 实例
        */
       count(isNewQueue = false) {
 
@@ -171,7 +180,7 @@ export default function (schema: Schema, options: Options, result: Result): Find
          }
 
       },
-   }
+   };
 
    Object.assign(promise, chain);
 

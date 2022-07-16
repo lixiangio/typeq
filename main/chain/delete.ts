@@ -1,13 +1,36 @@
 import Schema from '../schema.js';
 import { deleteQueue } from '../queue.js';
-import type { Options, BaseChain, Result } from '../common.js';
+import type { Options, CTX, Condition } from '../common.js';
 import where from './where.js';
 
-interface Chain extends Partial<BaseChain> { }
+interface DeleteChain {
+   ctx: CTX
+   /**
+    * where 逻辑过滤条件，等同于 and
+    */
+   where: (...fields: Condition[]) => DeletePromise
+   /**
+    * and 逻辑过滤条件
+    */
+   and?: (...fields: Condition[]) => DeletePromise
+   /**
+    * or 逻辑过滤条件
+    */
+   or?: (...fields: Condition[]) => DeletePromise
+   /**
+    * 返回指定字段，未指定字段时，返回全部字段
+    */
+   return: (...fields: string[]) => DeletePromise
+   /**
+    * 不返回指定字段
+    */
+   _return: (...fields: string[]) => DeletePromise
+}
 
-export type DeletePromise = Promise<any> & Partial<Chain>
+export interface DeletePromise extends Promise<any> { }
+export interface DeletePromise extends Partial<DeleteChain> { }
 
-export default function (schema: Schema, options: Options, result: Result): DeletePromise {
+export default function (schema: Schema, options: Options, result: (ctx: CTX) => any): DeletePromise {
 
    const { fields: schemaFields } = schema;
 
@@ -29,7 +52,7 @@ export default function (schema: Schema, options: Options, result: Result): Dele
       }
    });
 
-   const chain: Chain = {
+   const chain: DeleteChain = {
       ctx,
       where,
       /**
@@ -70,7 +93,7 @@ export default function (schema: Schema, options: Options, result: Result): Dele
          return this;
 
       }
-   }
+   };
 
    Object.assign(promise, chain);
 

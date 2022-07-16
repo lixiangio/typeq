@@ -10,8 +10,8 @@ test('query insert', async (t) => {
             state: Boolean
         })
     ]);
-    const { data, error } = schema.verify(result.rows);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result.rows);
+    t.ok(value, error);
 });
 test('query select', async (t) => {
     const result = await client().query(`SELECT * FROM "tasks" WHERE id = 1 LIMIT 1`);
@@ -27,8 +27,8 @@ test('query select', async (t) => {
             list: [...object],
         })
     ]);
-    const { data, error } = schema.verify(result.rows);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result.rows);
+    t.ok(value, error);
 });
 test('test', async (t) => {
     const result = await client().query(`INSERT INTO "public"."tasks" (

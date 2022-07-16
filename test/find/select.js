@@ -16,6 +16,6 @@ test('select', async (t) => {
             xx: union(String, null),
         })
     ]);
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });

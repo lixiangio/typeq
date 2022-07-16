@@ -6,7 +6,7 @@ export const json = Struct('json', {
     if (typeof value === 'object') {
       return { value, next: true };
     } else {
-      return { error: `值必须为 json 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 json 类型，实际赋值为 '${value}'` };
     }
   }
 });
@@ -16,7 +16,7 @@ export const jsonb = Struct('jsonb', {
     if (typeof value === 'object') {
       return { value, next: true };
     } else {
-      return { error: `值必须为 jsonb 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 jsonb 类型，实际赋值为 '${value}'` };
     }
   }
 });
@@ -29,7 +29,7 @@ export const object = Struct("jsonb", {
     if (toString.call(value) === '[object Object]') {
       return { value, next: true };
     } else {
-      return { error: `值必须为 object 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 object 类型，实际赋值为 '${value}'` };
     }
   }
 });
@@ -40,33 +40,33 @@ export const array = Struct('jsonb', {
     if (Array.isArray(value)) {
       return { value, next: true };
     } else {
-      return { error: `值必须为 array 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 array 类型，实际赋值为 '${value}'` };
     }
   }
 });
 
 /**
  * 可选类型辅助函数
- * @param node 类型节点
+ * @param type 类型节点
  */
-export function optional(node: StructFunction | StructObject | object | any[]) {
+export function optional(type: StructFunction | StructObject | object | any[]) {
 
-  const method: Function = node[methodKey];
+  const method: Function = type[methodKey];
 
-  if (Array.isArray(node)) {
+  if (Array.isArray(type)) {
 
-    return array(node, { optional: true });
+    return array(type, { optional: true });
 
-  } else if (toString.call(node) === '[object Object]') {
+  } else if (toString.call(type) === '[object Object]') {
 
-    return object(node, { optional: true });
+    return object(type, { optional: true });
 
   } else if (method) {
 
-    // node 为类型实例对象
-    if (typeof node === 'object') {
+    // type 为类型实例对象
+    if (typeof type === 'object') {
 
-      const { name, options } = node as StructObject;
+      const { name, options } = type as StructObject;
 
       return {
         name,
@@ -79,10 +79,10 @@ export function optional(node: StructFunction | StructObject | object | any[]) {
 
     }
 
-    // node 为静态类型函数
-    else if (typeof node === 'function') {
+    // type 为静态类型函数
+    else if (typeof type === 'function') {
 
-      const { name } = node as StructFunction;
+      const { name } = type as StructFunction;
 
       return {
         name,

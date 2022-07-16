@@ -1,5 +1,5 @@
-import types, { type Types } from './types/index.js';
 import { methodKey } from './common.js';
+import types, { type Types } from './types/index.js';
 
 interface Field {
   /** 字段类型 */
@@ -10,7 +10,7 @@ interface Field {
   comment?: string
   /** 默认值 */
   default?: any,
-  /** JSON 结构体 */
+  /** json 结构体 */
   struct?: object | any[]
   /** 可选字段 */
   optional?: boolean
@@ -46,20 +46,17 @@ export default class Schema {
 
         const method = node[methodKey];
 
-        // 将带有 methodKey 属性的类型对象或类型函数定义为与之对应的类型选项
         if (method) {
-
-          const { afters } = node;
 
           const field: Field = { type: node.name };
 
-          const { struct, options } = node;
+          const { struct, options, outputs } = node;
 
           if (struct) {
 
             field.struct = struct;
-            field[methodKey] = (entity, ctx, name) => {
-              const { error, value } = method(entity, ctx, name);
+            field[methodKey] = (entity: object | any[], paths: string[]) => {
+              const { error, value } = method(entity, paths);
               if (error) {
                 return { error: `${name} ${error}` };
               } else {
@@ -69,14 +66,12 @@ export default class Schema {
 
           } else {
 
-            field[methodKey] = (entity, ctx, name) => {
-              const { error, value } = method(entity, ctx, name);
+            field[methodKey] = (entity: string | number | Function, paths: string[]) => {
+              const { error, value } = method(entity, paths);
               if (error) {
                 return { error: `${name} ${error}` };
-              } else if (afters) {
-                return afters.sql(value)
               } else {
-                return { value };
+                return outputs.sql(value);
               }
             }
 
@@ -123,8 +118,8 @@ export default class Schema {
             type: 'array',
             struct: node,
             default: "'[]'::jsonb",
-            [methodKey](entity: unknown[], ctx, name: string) {
-              const { error, value } = methond(entity, ctx, name);
+            [methodKey](entity: unknown[], paths: string[]) {
+              const { error, value } = methond(entity, paths);
               if (error) {
                 return { error: `${name}${error}` };
               } else {
@@ -144,8 +139,8 @@ export default class Schema {
             type: 'object',
             struct: node,
             default: "'{}'::jsonb",
-            [methodKey](entity: object, ctx, name: string) {
-              const { error, value } = methond(entity, ctx, name);
+            [methodKey](entity: object, paths: string[]) {
+              const { error, value } = methond(entity, paths);
               if (error) {
                 return { error: `${name}${error}` };
               } else {

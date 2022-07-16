@@ -8,7 +8,7 @@ const { $in } = operator;
 
 test('delete', async t => {
 
-   const { id } = await tasks
+   const [{ id }] = await tasks
       .insert(tasks2)
       .return('id');
 
@@ -21,7 +21,7 @@ test('delete', async t => {
 test('delete $in', async t => {
 
    const insertData = await tasks
-      .insert([tasks2, tasks2, tasks2])
+      .insert(tasks2, tasks2, tasks2)
       .return('id');
 
    const [a, b, c] = insertData;
@@ -37,7 +37,7 @@ test('delete $in', async t => {
 
 test('deletePk', async t => {
 
-   const { id } = await tasks
+   const [{ id }] = await tasks
       .insert(tasks2)
       .return('id');
 
@@ -58,7 +58,7 @@ test('deletePk null', async t => {
 
 test('deletePk & return', async t => {
 
-   const { id } = await tasks.insert(tasks2);
+   const [{ id }] = await tasks.insert(tasks2);
 
    const result = await tasks
       .deletePk(id)
@@ -78,13 +78,13 @@ test('deletePk & return', async t => {
 
 test('deletePk & _return', async t => {
 
-   const { id } = await tasks
+   const [{ id }] = await tasks
       .insert(tasks2)
       .return('id');
 
    const result = await tasks
       .deletePk(id)
-      ._return('uid', 'state', "createdAt", "updatedAt")
+      ._return('uid', 'state', "createdAt", "updatedAt");
 
    const schema = new Schema({
       id: Number,

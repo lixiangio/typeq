@@ -1,4 +1,6 @@
 import { queryQueue } from './queue.js';
+import type { ModelFn } from './model.js';
+
 
 /**
  * 获取指定客户端
@@ -21,7 +23,7 @@ export default function (client: string = 'default') {
      * 同步单个模型
      * @param mode 同步模式
      */
-    async sync(model, { schema = 'public', mode = 'default' }) {
+    async sync(model: ModelFn, { schema = 'public', mode = 'default' }) {
 
       const { fields } = model.schema;
 

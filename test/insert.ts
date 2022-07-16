@@ -10,18 +10,18 @@ const options = { schema: 'public' };
 
 test('insert', async t => {
 
-  const result = await tasks(options)
+  const [item] = await tasks(options)
     .insert(tasks0)
     .return('id');
 
-  t.ok(result.id);
+  t.ok(item.id);
 
 });
 
 test('insert multiple', async t => {
 
   const result = await tasks(options)
-    .insert([tasks0, tasks2])
+    .insert(tasks0, tasks2)
     .return('id', 'uid');
 
   const schema = new Schema([
@@ -29,9 +29,9 @@ test('insert multiple', async t => {
     { id: Number, uid: 6 }
   ])
 
-  const { data, error } = schema.verify(result)
+  const { value, error } = schema.verify(result);
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 });
 
@@ -39,23 +39,13 @@ test('insert admin', async t => {
 
   const result = await admin(options)
     .insert(admin0)
-    .return('id', 'mobilePhone')
+    .return('id', 'name')
 
-  const schema = new Schema({ id: Number, mobilePhone: String })
+  const schema = new Schema({ id: Number, name: String })
 
-  const { data, error } = schema.verify(result)
+  const { value, error } = schema.verify(result[0])
 
-  t.ok(data, error);
-
-});
-
-test('insert conflict pk', async t => {
-
-  const result = await tasks(options)
-    .insert(tasks1)
-    .conflict('id');
-
-  t.ok(result === null);
+  t.ok(value, error);
 
 });
 
@@ -65,7 +55,7 @@ test('insert conflict nothing', async t => {
     .insert(tasks1)
     .conflict("id");
 
-  t.ok(result === null);
+    t.ok(result.length === 0);
 
 });
 
@@ -77,9 +67,9 @@ test('insert conflict update', async t => {
 
   const schema = new Schema({ id: Number });
 
-  const { data, error } = schema.verify(result)
+  const { value, error } = schema.verify(result[0])
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 });
 
@@ -95,8 +85,8 @@ test('insert return', async t => {
     state: Boolean
   });
 
-  const { data, error } = schema.verify(result);
+  const { value, error } = schema.verify(result[0]);
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 });

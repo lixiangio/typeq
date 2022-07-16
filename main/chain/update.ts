@@ -2,23 +2,44 @@ import Schema from '../schema.js';
 import where from './where.js';
 import { methodKey } from '../common.js';
 import { updateQueue } from '../queue.js';
-import type { Options, BaseChain, Result } from '../common.js';
+import type { Options, CTX, Condition } from '../common.js';
 
 const { toString } = Object.prototype;
 
 interface Entity { [i: string]: unknown }
 
-interface Chain extends Partial<BaseChain> {
+interface Chain {
+  ctx: CTX
+  /**
+   * where 逻辑过滤条件，等同于 and
+   */
+  where: (...fields: Condition[]) => UpdatePromise
+  /**
+   * and 逻辑过滤条件
+   */
+  and?: (...fields: Condition[]) => UpdatePromise
+  /**
+   * or 逻辑过滤条件
+   */
+  or?: (...fields: Condition[]) => UpdatePromise
+  /**
+   * 返回指定字段，未指定字段时，返回全部字段
+   */
+  return: (...fields: string[]) => UpdatePromise
+  /**
+   * 不返回指定字段
+   */
+  _return: (...fields: string[]) => UpdatePromise
   /**
    * 为符合匹配条件的数据赋值
    * @param entity 需要更新的数据
    */
-  set: (entity: Entity) => this
+  set: (entity: Entity) => UpdatePromise
 }
 
 export type UpdatePromise = Promise<any> & Partial<Chain>
 
-export default function (schema: Schema, options: Options, result: Result): UpdatePromise {
+export default function (schema: Schema, options: Options, result: (ctx: CTX) => any): UpdatePromise {
 
   const SET = [];
 
@@ -42,6 +63,7 @@ export default function (schema: Schema, options: Options, result: Result): Upda
   });
 
   const { fields } = schema;
+  const { schema: schemaName, table } = options;
 
   const chain: Chain = {
     ctx,
@@ -53,7 +75,7 @@ export default function (schema: Schema, options: Options, result: Result): Upda
     set(entity: Entity) {
 
       if (toString.call(entity) !== '[object Object]') {
-        throw ctx.error = new Error('值必须为 object 类型');
+        throw ctx.error = new Error(' 值必须为 object 类型');
       }
 
       delete entity.createdAt;
@@ -67,7 +89,7 @@ export default function (schema: Schema, options: Options, result: Result): Upda
 
           const child = entity[key];
 
-          const { error, value } = options[methodKey](child, ctx.options, key); // 类型验证函数
+          const { error, value } = options[methodKey](child, [schemaName, table, key]); // 类型验证函数
 
           if (error) throw ctx.error = new Error(error);
 

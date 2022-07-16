@@ -1,6 +1,6 @@
 import { safetyJson } from '../safety.js';
 import { methodKey, type CTX, type Return } from '../common.js';
-import type { Method, TypeOptions, OptionMethods } from './common.js';
+import type { Method, TypeOptions } from './common.js';
 
 export interface StructFunction extends Function {
   /** 类型名称 */
@@ -9,45 +9,25 @@ export interface StructFunction extends Function {
   [methodKey]?: Method
 }
 
-export interface StructObject {
-  /** 类型名称 */
-  name: string
-  /** 结构体 */
-  struct?: object | any[]
-  /** 类型选项 */
-  options?: TypeOptions
-  /** 类型方法 */
-  [methodKey]?: Method
-}
-
 const { toString } = Object.prototype;
 
 /**
- * 类型校验、合并输出安全的 JSON 字符串
+ *  校验 JSON 对象，输出安全的 JSON 字符串
  * @param type 结构类型
  * @param entity 实体数据
- * @param ctx 查询上下文
- * @param path 数据路径
+ * @param paths 字段路径
  */
-function jsonConverter(type: object | any[], entity: object | any[], ctx: CTX, path: string): Return {
+function jsonConverter(type: any, entity: object | any[], paths: string[]): Return {
 
   const method = type[methodKey];
 
   if (method) {
 
-    // if (typeof entity === 'function') {
-    //   console.log(entity)
-    // }
-
-    const { error, value } = method(entity, ctx, path);
+    const { error, value } = method(entity, paths);
 
     if (error) return { error };
 
-    if (type.afters) {
-      return type.afters.json(value);
-    } else {
-      return { value };
-    }
+    return type.outputs.json(value);
 
   }
 
@@ -57,9 +37,9 @@ function jsonConverter(type: object | any[], entity: object | any[], ctx: CTX, p
     // 数组结构
     if (Array.isArray(type)) {
       if (Array.isArray(entity)) {
-        return jsonArray(type as any[], entity as any[], ctx, path);
+        return jsonArray(type as any[], entity as any[], paths);
       } else {
-        return { error: "值必须为 array 类型" };
+        return { error: " 值必须为 array 类型" };
       }
     }
 
@@ -68,11 +48,11 @@ function jsonConverter(type: object | any[], entity: object | any[], ctx: CTX, p
 
       if (toString.call(entity) === '[object Object]') {
 
-        return jsonObject(type as object, entity as object, ctx, path);
+        return jsonObject(type as object, entity as object, paths);
 
       } else {
 
-        return { error: "值必须为 object 类型" };
+        return { error: " 值必须为 object 类型" };
 
       }
 
@@ -80,7 +60,7 @@ function jsonConverter(type: object | any[], entity: object | any[], ctx: CTX, p
 
   } else {
 
-    return { error: "值必须为 json 类型" };
+    return { error: " 值必须为 json 类型" };
 
   }
 
@@ -91,13 +71,13 @@ function jsonConverter(type: object | any[], entity: object | any[], ctx: CTX, p
   * @param struct 结构类型
   * @param entity 输入数据
  */
-function jsonObject(struct: object, entity: object, ctx: CTX, path: string): Return {
+function jsonObject(struct: object, entity: object, paths: string[]): Return {
 
   const items = [];
 
   for (const name in struct) {
 
-    const { error, value } = jsonConverter(struct[name], entity[name], ctx, path);
+    const { error, value } = jsonConverter(struct[name], entity[name], paths);
 
     if (error) {
       return { error: `.${name}${error}` };
@@ -116,7 +96,7 @@ function jsonObject(struct: object, entity: object, ctx: CTX, path: string): Ret
   * @param struct 结构类型
   * @param entity 输入数据
  */
-function jsonArray(struct: any[], entity: any[], ctx: CTX, path: string): Return {
+function jsonArray(struct: any[], entity: any[], paths: string[]): Return {
 
   const items = [];
   let itemKey = 0;
@@ -129,7 +109,7 @@ function jsonArray(struct: any[], entity: any[], ctx: CTX, path: string): Return
     for (const itemEntity of entity) {
 
       // 子集递归验证
-      const { error, value } = jsonConverter(option, itemEntity, ctx, path);
+      const { error, value } = jsonConverter(option, itemEntity, paths);
 
       if (error) {
         return { error: `[${itemKey}]${error}` };
@@ -147,10 +127,10 @@ function jsonArray(struct: any[], entity: any[], ctx: CTX, path: string): Return
   // 如果要固定匹配一个，可以在第二个匹配位传入 undefined
   else {
 
-    for (const option of struct) {
+    for (const item of struct) {
 
       // 子集递归验证
-      const { error, value } = jsonConverter(option, entity[itemKey], ctx, path);
+      const { error, value } = jsonConverter(item, entity[itemKey], paths);
 
       if (error) {
         return { error: `[${itemKey}]${error}` };
@@ -168,10 +148,42 @@ function jsonArray(struct: any[], entity: any[], ctx: CTX, path: string): Return
 
 }
 
+/** 类型选项映射方法的有序集合 */
+export interface StructMethods {
+  /**
+   * 类型验证
+   * @param entity 数据实体
+   */
+  type(entity: unknown): Return
+  [index: string]: (entity: unknown, option: unknown, ctx: CTX, path: string) => Return
+}
+
+/** 默认的 SQL、JSON 字符串输出前的差异化处理函数 */
+const _outputs = {
+  /** 输出为 SQL */
+  sql(value: unknown) { return { value }; },
+  /** 输出为 JSON */
+  json(value: string) { return { value }; }
+}
+
+export type Outputs = typeof _outputs;
+
+export interface StructObject {
+  /** 类型名称 */
+  name: string
+  /** 结构体 */
+  struct: object | any[]
+  /** 类型选项 */
+  options?: TypeOptions
+  outputs?: Outputs
+  /** 类型方法 */
+  [methodKey]: Method
+}
+
 /**
  * 创建 JSON 数组、对象结构类型函数
  */
-export default function Struct(name: string, methods: OptionMethods): StructFunction {
+export default function Struct(name: string, methods: StructMethods, outputs: Outputs = _outputs): StructFunction {
 
   const { type: typeMethod } = methods;
 
@@ -182,18 +194,21 @@ export default function Struct(name: string, methods: OptionMethods): StructFunc
     return {
       name,
       struct,
+      outputs,
       options,
       /**
        * 数据处理函数
-       * @param value 实体数据
+       * @param entity 实体数据
+       * @param paths 字段路径
        */
-      [methodKey](value, ctx, path: string) {
+      [methodKey](entity, paths: string[]) {
 
-        const result = typeMethod(value); // 基础类型校验
+        const result = typeMethod(entity); // 基础类型校验
+
         if (result.error) {
           return result;
         } else {
-          return jsonConverter(struct, value, ctx, path);
+          return jsonConverter(struct, entity, paths);
         }
 
       }

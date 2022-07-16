@@ -3,7 +3,6 @@ import { Schema, Utility, object, string } from 'typea';
 import { operator, models } from 'typeq';
 
 const { union } = Utility;
-
 const { $as } = operator;
 const { tasks } = models;
 
@@ -14,13 +13,12 @@ const options = {
   partition: '01'
 };
 
-test('return', async t => {
+test('select', async t => {
 
   const result = await tasks(options)
-    .find()
+    .select('id', 'keywords', 'list', $as("area", "xx"), 'createdAt')
     .offset(1)
-    .limit(3)
-    .return('id', 'keywords', 'list', $as("area", "xx"), 'createdAt');
+    .limit(3);
 
   const schema = new Schema([
     ...object({
@@ -30,9 +28,9 @@ test('return', async t => {
     })
   ]);
 
-  const { data, error } = schema.verify(result);
+  const { value, error } = schema.verify(result);
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 })
 
@@ -45,7 +43,7 @@ test('_return', async t => {
       "id": "desc",
       "keywords": "desc"
     })
-    ._return('keywords', 'createdAt')
+    ._return('keywords', 'createdAt');
 
   const schema = new Schema([
     ...object({
@@ -58,8 +56,8 @@ test('_return', async t => {
     })
   ]);
 
-  const { data, error } = schema.verify(result);
+  const { value, error } = schema.verify(result);
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 })

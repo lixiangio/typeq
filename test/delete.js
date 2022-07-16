@@ -5,7 +5,7 @@ import { tasks2 } from '../data/tasks.js';
 const { tasks } = models;
 const { $in } = operator;
 test('delete', async (t) => {
-    const { id } = await tasks
+    const [{ id }] = await tasks
         .insert(tasks2)
         .return('id');
     const result = await tasks.delete({ id });
@@ -13,7 +13,7 @@ test('delete', async (t) => {
 });
 test('delete $in', async (t) => {
     const insertData = await tasks
-        .insert([tasks2, tasks2, tasks2])
+        .insert(tasks2, tasks2, tasks2)
         .return('id');
     const [a, b, c] = insertData;
     const result = await tasks
@@ -23,7 +23,7 @@ test('delete $in', async (t) => {
     t.deepEqual(insertData, result);
 });
 test('deletePk', async (t) => {
-    const { id } = await tasks
+    const [{ id }] = await tasks
         .insert(tasks2)
         .return('id');
     const result = await tasks
@@ -35,7 +35,7 @@ test('deletePk null', async (t) => {
     t.deepEqual(result, null);
 });
 test('deletePk & return', async (t) => {
-    const { id } = await tasks.insert(tasks2);
+    const [{ id }] = await tasks.insert(tasks2);
     const result = await tasks
         .deletePk(id)
         .return('id', 'uid', 'state');
@@ -48,7 +48,7 @@ test('deletePk & return', async (t) => {
     t.ok(value, error);
 });
 test('deletePk & _return', async (t) => {
-    const { id } = await tasks
+    const [{ id }] = await tasks
         .insert(tasks2)
         .return('id');
     const result = await tasks

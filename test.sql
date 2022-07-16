@@ -13,15 +13,16 @@ VALUES (
     DEFAULT,
     6,
     json(
-      '{"state": false,"area": "\\k''k''kk\"k<script\n\t type=\"text/javascript\" src=\"/app.js\"></script>","createdAt": "' || now() || '"}'
+      '{"state": false,"area": "\k''kkk"k<script
+         type="text/javascript" src="/app.js"></script>","createdAt": "' || now() || '"}'
     ),
     json(
-      '[{"address": [{"name": "aa","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"test": {},"state": true,"createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"address": [{"name": "' || now() || '","createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"name": "bbbb","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"test": {},"state": false,"createdAt": "' || now() || '","updatedAt": "' || now() || '"}]'
+      '[{"address": [{"name": "aa","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"state": true,"createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"address": [{"name": "now()","createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"name": "bbbb","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"state": false,"createdAt": "' || now() || '","updatedAt": "' || now() || '"}]'
     ),
-    ''|| now() ||'',
+    'xxx',
     '{}'::jsonb,
     false,
     now(),
     now()
   )
-RETURNING *
+RETURNING "id"

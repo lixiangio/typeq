@@ -8,15 +8,15 @@ export const schema = new Schema({
     comment: "user id",
     uniqueIndex: true
   }),
-  keywords: optional({
+  keywords: {
     state: boolean,
     area: char({
       comment: "地址",
       optional: true,
       length: 200
     }),
-    createdAt: timestamp({ default: `' || now() || '` }),
-  }),
+    createdAt: timestamp({ default: 'now()' }),
+  },
   list: [
     {
       // id: integer({ sequence: true }),
@@ -24,14 +24,13 @@ export const schema = new Schema({
         {
           // id: integer({ sequence: true }),
           name: string({ min: 2, max: 10, }),
-          createdAt: timestamp({ default: `' || now() || '` }),
-          updatedAt: timestamp({ default: `' || now() || '` }),
+          createdAt: timestamp({ default: 'now()' }),
+          updatedAt: timestamp({ default: 'now()' }),
         }
       ]),
-      test: {},
       state: boolean,
-      createdAt: timestamp({ default: `' || now() || '` }),
-      updatedAt: timestamp({ default: `' || now() || '` }),
+      createdAt: timestamp({ default: 'now()' }),
+      updatedAt: timestamp({ default: 'now()' }),
     }
   ],
   area: string({ comment: "地址" }),

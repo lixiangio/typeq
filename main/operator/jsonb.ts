@@ -5,12 +5,18 @@ import { safetyJson } from '../safety.js';
  */
 export default {
   /**
+   * 包含匹配，从 jsonb 中筛选符合条件的数据
+   * @param value 一个或多个值
+   */
+   $includes(value: object | any[]) {
+    return () => `@> '${safetyJson(value)}'::jsonb`;
+  },
+  /**
    * 合并 jsonb 对象
    */
   $merge(value: object) {
     return function (field: string) {
-      const json = safetyJson(value);
-      return `"${field}" || '${json}'::jsonb`;
+      return `"${field}" || '${safetyJson(value)}'::jsonb`;
     }
   },
   /**
@@ -48,12 +54,5 @@ export default {
       const json = safetyJson(value);
       return `jsonb_insert("${field}", '{0}', '${json}'::jsonb)`;
     }
-  },
-  /**
-   * 包含匹配，仅适用于j sonb 数组类型
-   * @param values 一个或多个值
-   */
-  $includes(...values) {
-    return () => `@> '${safetyJson(values)}'::jsonb`;
   },
 }

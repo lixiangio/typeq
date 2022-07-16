@@ -12,4 +12,4 @@ export * from './safety.js';
 
 queue.use(pgsql);
 
-export { Schema, Struct, Type, Model, VModel, models, queue, client, operator };
+export { Schema, Type, Struct, Model, VModel, models, queue, client, operator };

@@ -11,14 +11,12 @@ const valueReg = /'/g;
  */
 export function safetyKey(entity: string): string {
 
-  const safetyKey = entity.replace(keyReg, "");
-  return safetyKey.split('.').join('"."');
+  return entity.replace(keyReg, "").split('.').join('"."');
 
 }
 
 /**
- * 将字符串中的单引号替换为双单引号，防止截断注入
- * 在 SQL 中两个连续的单引号会被视为普通的单引号字符
+ * 将 SQL 字符串中的单引号替换为双单引号(两个连续的单引号会被视为普通的单引号字符)，防止截断注入
  * @param string 不安全的字符串
  */
 export function sqlString(string: string | number): string {

@@ -3,55 +3,22 @@ import { sqlString, jsonString } from '../safety.js';
 import isISO8601 from '../../validator/isISO8601.js';
 import { json, jsonb, object, array, optional } from './json.js';
 
-const CommonMethods = {
-  /** 默认值 */
-  default(value, defaultValue) {
-    if (value === undefined) {
-      return { value: `'|| ${defaultValue} ||'` };
-    } else {
-      return { value, next: true };
-    }
-  },
-  /** 可选值 */
-  optional(value, isOptional: boolean) {
-    if (value === undefined) {
-      if (isOptional === true) {
-        return { value };
-      } else {
-        return { error: " value is not allowed to be empty" };
-      }
-    } else {
-      return { value, next: true };
-    }
-  },
-}
-
-const AfterMethods = {
-  /** 返回至 SQL */
-  sql(value: string) {
-    return { value: `'${value}'` };
-  },
-  /** 返回至 JSON */
-  json(value: string) {
-    return { value: `"${value}"` };
-  }
-}
+const { baseMethods } = Type;
 
 const IntegerMethods = {
-  /** JSON 序列 */
-  sequence(value: number, isSequence: boolean, info, path: string) {
+  /** JSON 中的自增序列 */
+  sequence(value: number, isSequence: boolean, [schema, table, field]: string[]) {
     if (isSequence === true && value === undefined) {
-      const { schema, table } = info;
-      return { value: `' || nextval('${schema}.${table}.${path}') || '` };
+      return { value: `' || nextval('${schema}.${table}.${field}') || '` };
     }
     return { value, next: true };
   },
-  ...CommonMethods,
+  ...baseMethods,
   type(value: number) {
     if (Number.isInteger(value)) {
       return { value, next: true };
     } else {
-      return { error: `值必须为 integer 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 integer 类型，实际赋值为 '${value}'` };
     }
   },
   /**限制最小值 */
@@ -70,30 +37,30 @@ const IntegerMethods = {
       return { value, next: true }
     }
   },
-}
+};
 
 const integer = Type('integer', IntegerMethods);
 const bigint = Type('bigint', IntegerMethods);
 
 const float = Type('float', {
-  ...CommonMethods,
+  ...baseMethods,
   type(value: number) {
     if (isNaN(value) === false && parseFloat(String(value)) !== NaN) {
       return { value, next: true };
     } else {
-      return { error: `值必须为 float 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 float 类型，实际赋值为 '${value}'` };
     }
   }
 })
 
 const StringMethods = {
-  ...CommonMethods,
+  ...baseMethods,
   type(value: string) {
     if (typeof value === 'string') {
       return { value: sqlString(value), next: true };
     } else {
       console.log(value)
-      return { error: `值必须为 string 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 string 类型，实际赋值为 '${value}'` };
     }
   },
   /**限制最小长度 */
@@ -122,7 +89,7 @@ const StringMethods = {
   }
 };
 
-const StringAfterMethods = {
+const StringOutputs = {
   /** 返回至 SQL */
   sql(value: string) {
     if (value === undefined) {
@@ -136,39 +103,50 @@ const StringAfterMethods = {
     if (value === undefined) {
       return { value: null };
     } else {
-      return { value: `"${jsonString(value)}"` };
+      return { value: `"${value}"` };
     }
   }
 }
 
-const char = Type('char', StringMethods, StringAfterMethods);
-const varchar = Type('varchar', StringMethods, StringAfterMethods);
+const char = Type('char', StringMethods, StringOutputs);
+const varchar = Type('varchar', StringMethods, StringOutputs);
 
 const boolean = Type('boolean', {
-  ...CommonMethods,
+  ...baseMethods,
   type(value: boolean) {
     if (typeof value === 'boolean') {
       return { value, next: true };
     } else {
-      return { error: `值必须为 boolean 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 boolean 类型，实际赋值为 '${value}'` };
     }
   }
 })
 
+const DateOutputs = {
+  /** 返回至 SQL */
+  sql(value: string) {
+    return { value: `'${value}'` };
+  },
+  /** 返回至 JSON */
+  json(value: string) {
+    return { value: `"${value}"` };
+  }
+}
+
 const date = Type('date', {
-  ...CommonMethods,
+  ...baseMethods,
   type(value: Date) {
     const date = Date.parse(String(value));
     if (isNaN(date) === false) {
       return { value, next: true };
     } else {
-      return { error: `值必须为 date 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 date 类型，实际赋值为 '${value}'` };
     }
   }
-}, AfterMethods);
+}, DateOutputs);
 
 const timestamp = Type('timestamp', {
-  ...CommonMethods,
+  ...baseMethods,
   type(entity: Date) {
     // if (entity instanceof Date) {
     //   return { value: `'${entity.toISOString()}'`, next: true };
@@ -177,13 +155,13 @@ const timestamp = Type('timestamp', {
     if (isISO8601(value)) {
       return { value, next: true };
     } else {
-      return { error: `值必须为 timestamp 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 timestamp 类型，实际赋值为 '${value}'` };
     }
   }
-}, AfterMethods);
+}, DateOutputs);
 
 const range = Type('range', {
-  ...CommonMethods,
+  ...baseMethods,
   type(value: number[]) {
     if (Array.isArray(value)) {
       if (value.length == 2) {
@@ -197,14 +175,14 @@ const range = Type('range', {
         return { error: `range 长度必须等于 2` };
       }
     } else {
-      return { error: `值必须为 range 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 range 类型，实际赋值为 '${value}'` };
     }
   }
 });
 
 /** integer 数组 */
 const integers = Type('integer[]', {
-  ...CommonMethods,
+  ...baseMethods,
   type(value: number[]) {
     if (Array.isArray(value)) {
       for (const item of value) {
@@ -214,7 +192,7 @@ const integers = Type('integer[]', {
       }
       return { value: `{${value.join()}}`, next: true };
     } else {
-      return { error: `值必须为 integer[] 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 integer[] 类型，实际赋值为 '${value}'` };
     }
   }
 });
@@ -240,6 +218,6 @@ const types = {
   optional
 }
 
-export type Types = { [name: string]: Function } & (typeof types)
+export type Types = (typeof types) & { [name: string]: Function }
 
 export default types;

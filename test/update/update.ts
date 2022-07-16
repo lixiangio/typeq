@@ -91,9 +91,9 @@ test('update().return()', async t => {
     })
   ]);
 
-  const { data, error } = schema.verify(result);
+  const { value, error } = schema.verify(result);
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 })
 

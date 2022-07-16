@@ -10,12 +10,11 @@ const options = {
     table: 'tasks',
     partition: '01'
 };
-test('return', async (t) => {
+test('select', async (t) => {
     const result = await tasks(options)
-        .find()
+        .select('id', 'keywords', 'list', $as("area", "xx"), 'createdAt')
         .offset(1)
-        .limit(3)
-        .return('id', 'keywords', 'list', $as("area", "xx"), 'createdAt');
+        .limit(3);
     const schema = new Schema([
         ...object({
             id: Number,
@@ -23,8 +22,8 @@ test('return', async (t) => {
             xx: union(string, null),
         })
     ]);
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });
 test('_return', async (t) => {
     const result = await tasks(options)
@@ -45,6 +44,6 @@ test('_return', async (t) => {
             state: false
         })
     ]);
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });

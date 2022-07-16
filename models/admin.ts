@@ -1,5 +1,5 @@
 import { Schema, Model } from 'typeq';
-// import { mobilePhone, email } from 'typeq/types';
+// import { mobilePhone } from 'typeq/types/mobilePhone.js';
 
 const { integer, string, char } = Schema.types;
 

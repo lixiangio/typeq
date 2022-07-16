@@ -6,49 +6,43 @@ import { admin0 } from '../data/admin.js';
 const { tasks, admin } = models;
 const options = { schema: 'public' };
 test('insert', async (t) => {
-    const result = await tasks(options)
+    const [item] = await tasks(options)
         .insert(tasks0)
         .return('id');
-    t.ok(result.id);
+    t.ok(item.id);
 });
 test('insert multiple', async (t) => {
     const result = await tasks(options)
-        .insert([tasks0, tasks2])
+        .insert(tasks0, tasks2)
         .return('id', 'uid');
     const schema = new Schema([
         { id: Number, uid: 6 },
         { id: Number, uid: 6 }
     ]);
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });
 test('insert admin', async (t) => {
     const result = await admin(options)
         .insert(admin0)
-        .return('id', 'mobilePhone');
-    const schema = new Schema({ id: Number, mobilePhone: String });
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
-});
-test('insert conflict pk', async (t) => {
-    const result = await tasks(options)
-        .insert(tasks1)
-        .conflict('id');
-    t.ok(result === null);
+        .return('id', 'name');
+    const schema = new Schema({ id: Number, name: String });
+    const { value, error } = schema.verify(result[0]);
+    t.ok(value, error);
 });
 test('insert conflict nothing', async (t) => {
     const result = await tasks(options)
         .insert(tasks1)
         .conflict("id");
-    t.ok(result === null);
+    t.ok(result.length === 0);
 });
 test('insert conflict update', async (t) => {
     const result = await tasks(options)
         .insert(tasks1)
         .conflict("id", true);
     const schema = new Schema({ id: Number });
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result[0]);
+    t.ok(value, error);
 });
 test('insert return', async (t) => {
     const result = await tasks()
@@ -58,6 +52,6 @@ test('insert return', async (t) => {
         uid: Number,
         state: Boolean
     });
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result[0]);
+    t.ok(value, error);
 });

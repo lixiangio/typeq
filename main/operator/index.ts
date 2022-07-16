@@ -1,8 +1,6 @@
 import { safetyKey, sqlString, safetyJson } from '../safety.js';
 import jsonb from './jsonb.js';
 
-type Func = () => string;
-
 export default {
   /** 
    * 原生 SQL 查询
@@ -14,10 +12,10 @@ export default {
    * @param field 原名
    * @param alias 别名
    */
-  $as(field: string, alias: string): Func {
-    return () => `"${safetyKey(field)}" AS "${alias.replace(/"/g, "")}"`;
+  $as(field: string, alias: string) {
+    return () => `"${safetyKey(field)}" AS "${alias.replace(/"/g, '')}"`;
   },
-  $count() { return () => `count(*)::integer`; },
+  $count() { return () => 'count(*)::integer'; },
   $eq(value: number) {
     return () => `= ${sqlString(value)}`
   },
@@ -53,7 +51,7 @@ export default {
    * @param end 结束值
    */
   $scope(start: number, end: number) {
-    return (field) => `>= ${sqlString(start)} AND "${safetyKey(field)}" < ${sqlString(end)}`;
+    return (field: string) => `>= ${sqlString(start)} AND "${safetyKey(field)}" < ${sqlString(end)}`;
   },
   /**
    * 仅用于range范围数据类型
@@ -61,104 +59,67 @@ export default {
    * @param end 结束值
    */
   $range(start: number, end: number) {
-    return function () {
-      return [sqlString(start), sqlString(end)];
-    }
+    return () => [sqlString(start), sqlString(end)];
   },
   $is(value) {
-    return function () {
-      return `IS ${sqlString(value)}`
-    }
+    return () => `IS ${sqlString(value)}`;
   },
   $like(value: string) {
-    return function () {
-      return `LIKE ${sqlString(value)}`
-    }
+    return () => `LIKE ${sqlString(value)}`;
   },
   $notLike(value: string) {
-    return function () {
-      return `NOT LIKE ${sqlString(value)}`
-    }
+    return () => `NOT LIKE ${sqlString(value)}`;
   },
   $iLike(value) {
-    return function () {
-      return `ILIKE ${sqlString(value)}`
-    }
+    return () => `ILIKE ${sqlString(value)}`;
   },
   $notILike(value) {
-    return function () {
-      return `NOT ILIKE ${sqlString(value)}`
-    }
+    return () => `NOT ILIKE ${sqlString(value)}`
   },
   $regexp(value) {
-    return function () {
-      return `~ ${sqlString(value)}`;
-    }
+    return () => `~ ${sqlString(value)}`;
   },
   $notRegexp(value) {
-    return function () {
-      return `!~ ${sqlString(value)}`;
-    }
+    return () => `!~ ${sqlString(value)}`;
   },
   $iRegexp(value) {
-    return function () {
-      return `~* ${sqlString(value)}`;
-    }
+    return () => `~* ${sqlString(value)}`;
   },
   $notIRegexp(value) {
-    return function () {
-      return `!~* ${sqlString(value)}`;
-    }
+    return () => `!~* ${sqlString(value)}`;
   },
   $between(value) {
-    return function () {
-      return `BETWEEN ${sqlString(value)}`;
-    }
+    return () => `BETWEEN ${sqlString(value)}`;
   },
   $notBetween(value) {
-    return function () {
-      return `NOT BETWEEN ${sqlString(value)}`;
-    }
+    return () => `NOT BETWEEN ${sqlString(value)}`;
   },
   $overlap(value) {
-    return function () {
-      return `&& ${sqlString(value)}`;
-    }
+    return () => `&& ${sqlString(value)}`;
   },
   $contains(value) {
-    return function () {
-      return `@> '${safetyJson(value)}'`;
-    }
+    return () => `@> '${safetyJson(value)}'`;
   },
   $contained(value) {
-    return function () {
-      return `<@ '${safetyJson(value)}'`;
-    }
+    return () => `<@ '${safetyJson(value)}'`;
   },
   $adjacent(value) {
-    return function () {
-      return `-|- ${sqlString(value)}`
-    }
+    return () => `-|- ${sqlString(value)}`;
   },
   $strictLeft(value) {
-    return function () {
-      return `<< ${sqlString(value)}`
-    }
+    return () => `<< ${sqlString(value)}`;
+
   },
   $strictRight(value) {
-    return function () {
-      return `>> ${sqlString(value)}`
-    }
+    return () => `>> ${sqlString(value)}`;
+
   },
   $noExtendRight(value) {
-    return function () {
-      return `&< ${sqlString(value)}`
-    }
+    return () => `&< ${sqlString(value)}`;
+
   },
   $noExtendLeft(value) {
-    return function () {
-      return `&> ${sqlString(value)}`
-    }
+    return () => `&> ${sqlString(value)}`;
   },
   ...jsonb,
 }

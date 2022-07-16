@@ -75,8 +75,8 @@ test('update().return()', async (t) => {
             area: string,
         })
     ]);
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });
 test('update()._return()', async (t) => {
     const result = await tasks

@@ -7,7 +7,8 @@
   "module": "./main/index.js",
   "exports": {
     ".": "./main/index.js",
-    "./pgclient": "./pgclient/index.js"
+    "./pgclient": "./pgclient.js",
+    "./types/*": "./types/*.js"
   },
   "types": "./main/index.d.ts",
   "devDependencies": {

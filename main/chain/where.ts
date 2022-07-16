@@ -6,9 +6,9 @@ import type { CTX } from '../common.js';
  * @param parameter 每个子节点均为 and 集合，多个子节点之间为 or 集合
  * @param ctx 查询上下文
  */
-function converter(parameter: object[], ctx: CTX) {
+function converter(parameter: object[], ctx: CTX): string {
 
-   if (parameter.length === 0) return;
+   if (parameter.length === 0) throw new Error(`参数不允许为空`);
 
    const { table } = ctx.options;
    const { fields } = ctx.schema;
@@ -22,11 +22,10 @@ function converter(parameter: object[], ctx: CTX) {
       for (const name in item) {
 
          if (fields[name] === undefined) {
-            throw ctx.error = new Error(` ${table} 表模型中 ${name} 字段不存在`);
+            throw ctx.error = new Error(` ${table} 表模型中不存在 ${name} 字段`);
          }
 
          const field = `"${name}"`;
-
          const value = item[name];
 
          // 函数运算符
@@ -39,11 +38,11 @@ function converter(parameter: object[], ctx: CTX) {
          // 对象
          else if (value instanceof Object) {
 
-            AND.push(`${field} = ${sqlString(JSON.stringify(value))}`);
+            AND.push(`${field} = '${sqlString(JSON.stringify(value))}'`);
 
          } else {
 
-            AND.push(`${field} = ${sqlString(value)}`);
+            AND.push(`${field} = '${sqlString(value)}'`);
 
          }
 
@@ -64,7 +63,6 @@ function converter(parameter: object[], ctx: CTX) {
 /**
  * logic 函数链
  * @param parameter 
- * @returns 
  */
 export default function where(...parameter: object[]) {
 

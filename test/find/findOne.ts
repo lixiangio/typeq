@@ -13,7 +13,7 @@ const schema = new Schema({
    // createdAt: String,
    // updatedAt: String,
    list: Array
-})
+});
 
 test('findOne', async t => {
 
@@ -22,7 +22,7 @@ test('findOne', async t => {
       .order({
          "id": "desc",
          "keywords": "desc"
-      })
+      });
 
    t.ok(result.id === 1);
 
@@ -36,7 +36,7 @@ test('findOne()', async t => {
       .order({
          "id": "desc",
          "keywords": "desc"
-      })
+      });
 
    const { error, data } = schema.verify(result);
 
