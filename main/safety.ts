@@ -21,7 +21,7 @@ export function safetyKey(entity: string): string {
  * 在 SQL 中两个连续的单引号会被视为普通的单引号字符
  * @param string 不安全的字符串
  */
-export function sqlString(string: string): string {
+export function sqlString(string: string | number): string {
 
   return String(string).replace(valueReg, "''");
 

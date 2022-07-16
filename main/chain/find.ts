@@ -3,20 +3,21 @@ import { findQueue } from '../queue.js';
 import type { BaseChain, Options, Result } from '../common.js';
 import Schema from '../schema.js';
 
-interface FindChain extends BaseChain<any> {
-   group?: (...fields: string[]) => this
-   order?: (options) => this
-   offset?: (value: number) => this
-   limit?: (value: number) => this
-   count?: (isNewQueue: boolean) => this
+const directions = { 'desc': "DESC", 'asc': "ASC" };
+
+interface Directions { [field: string]: 'desc' | 'asc' }
+
+interface Chain extends Partial<BaseChain> {
+   group: (...fields: string[]) => FindPromise
+   order: (options: Directions) => FindPromise
+   offset: (value: number) => FindPromise
+   limit: (value: number) => FindPromise
+   count: (isNewQueue: boolean) => FindPromise
 }
 
-const directions = {
-   'desc': "DESC",
-   'asc': "ASC"
-};
+export type FindPromise = Promise<any> & Partial<Chain>
 
-export default function (schema: Schema, options: Options, result: Result): FindChain {
+export default function (schema: Schema, options: Options, result: Result): FindPromise {
 
    const SELECT = [], ORDER = [], GROUP = [];
 
@@ -44,10 +45,10 @@ export default function (schema: Schema, options: Options, result: Result): Find
       }
    });
 
-   Object.assign(promise, {
+   const chain: Chain = {
       ctx,
       where,
-      order(options: object) {
+      order(options: Directions) {
 
          const ORDER = [];
 
@@ -109,7 +110,7 @@ export default function (schema: Schema, options: Options, result: Result): Find
        * 返回指定列
        * @param fields 包含字段
        */
-      return(...fields: string[] | Function[]) {
+      return(...fields) {
 
          for (const field of fields) {
             if (typeof field === 'string') {
@@ -170,7 +171,9 @@ export default function (schema: Schema, options: Options, result: Result): Find
          }
 
       },
-   });
+   }
+
+   Object.assign(promise, chain);
 
    return promise;
 

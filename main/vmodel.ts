@@ -160,82 +160,82 @@ export default class VModel {
     // };
 
   }
-  select(...fields): Find {
+  // select(...fields): Find {
 
-    const chain = new Find(this);
+  //   const chain = new Find(this);
 
-    chain.result = (data) => data.rows;
+  //   chain.result = (data) => data.rows;
 
-    return chain.return(...fields);
+  //   return chain.return(...fields);
 
-  }
-  /**
-   * 查询多条
-   * @param  {Object} condition 
-   */
-  find(condition): Find {
+  // }
+  // /**
+  //  * 查询多条
+  //  * @param  {Object} condition 
+  //  */
+  // find(condition): Find {
 
-    const chain = new Find(this);
+  //   const chain = new Find(this);
 
-    if (condition) {
-      chain.where(condition);
-    }
+  //   if (condition) {
+  //     chain.where(condition);
+  //   }
 
-    chain.result = (data) => data.rows;
+  //   chain.result = (data) => data.rows;
 
-    return chain;
+  //   return chain;
 
-  }
-  /**
-   * 查询单条
-   * @param  {Object} condition
-   */
-  findOne(condition): Find {
+  // }
+  // /**
+  //  * 查询单条
+  //  * @param  {Object} condition
+  //  */
+  // findOne(condition): Find {
 
-    const chain = new Find(this);
+  //   const chain = new Find(this);
 
-    if (condition) {
-      chain.where(condition);
-    }
+  //   if (condition) {
+  //     chain.where(condition);
+  //   }
 
-    chain.limit(1);
+  //   chain.limit(1);
 
-    chain.result = (data) => data.rows[0] || null;
+  //   chain.result = (data) => data.rows[0] || null;
 
-    return chain;
+  //   return chain;
 
-  }
-  /**
-   * 查询主键
-   * @param id 
-   */
-  findPk(id: number): Find {
+  // }
+  // /**
+  //  * 查询主键
+  //  * @param id 
+  //  */
+  // findPk(id: number): Find {
 
-    const chain = new Find(this);
+  //   const chain = new Find(this);
 
-    const { primaryKey } = this;
+  //   const { primaryKey } = this;
 
-    if (primaryKey) {
-      chain.where({ [primaryKey]: id });
-    } else {
-      throw new Error(`模型中未定义主键`);
-    }
+  //   if (primaryKey) {
+  //     chain.where({ [primaryKey]: id });
+  //   } else {
+  //     throw new Error(`模型中未定义主键`);
+  //   }
 
-    chain.limit(1);
+  //   chain.limit(1);
 
-    chain.result = (data) => data.rows[0] || null;
+  //   chain.result = (data) => data.rows[0] || null;
 
-    return chain;
+  //   return chain;
 
-  }
-  /**
-   * 查询数据总量
-   */
-  count() {
+  // }
+  // /**
+  //  * 查询数据总量
+  //  */
+  // count() {
 
-    const chain = new Find(this);
+  //   const chain = new Find(this);
 
-    return chain.count();
+  //   return chain.count();
 
-  }
+  // }
 };

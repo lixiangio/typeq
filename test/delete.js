@@ -44,8 +44,8 @@ test('deletePk & return', async (t) => {
         uid: Number,
         state: Boolean
     });
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });
 test('deletePk & _return', async (t) => {
     const { id } = await tasks
@@ -61,6 +61,6 @@ test('deletePk & _return', async (t) => {
         area: String,
         modes: {},
     });
-    const { data, error } = schema.verify(result);
-    t.ok(data, error);
+    const { value, error } = schema.verify(result);
+    t.ok(value, error);
 });

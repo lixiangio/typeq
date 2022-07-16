@@ -1,4 +1,4 @@
-import * as types from './types/index.js';
+import types, { type Types } from './types/index.js';
 import { methodKey } from './common.js';
 
 interface Field {
@@ -31,7 +31,7 @@ const { integer, timestamp, array, object } = types;
 const { hasOwnProperty } = Object.prototype;
 
 export default class Schema {
-  static types = types
+  static types: Types = types
   primaryKey: string // 主键名称
   fields: Fields = {}
   constructor(struct: Struct) {
@@ -123,7 +123,7 @@ export default class Schema {
             type: 'array',
             struct: node,
             default: "'[]'::jsonb",
-            [methodKey](entity, ctx, name) {
+            [methodKey](entity: unknown[], ctx, name: string) {
               const { error, value } = methond(entity, ctx, name);
               if (error) {
                 return { error: `${name}${error}` };
@@ -144,7 +144,7 @@ export default class Schema {
             type: 'object',
             struct: node,
             default: "'{}'::jsonb",
-            [methodKey](entity, ctx, name) {
+            [methodKey](entity: object, ctx, name: string) {
               const { error, value } = methond(entity, ctx, name);
               if (error) {
                 return { error: `${name}${error}` };

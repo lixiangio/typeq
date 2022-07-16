@@ -25,7 +25,7 @@ export const tasks0 = {
             'state': false,
             'address': [
                 {
-                    name: $sql(`' || now() || '`)
+                    name: $sql(`'|| now() ||'`)
                 },
                 {
                     name: "bbbb",

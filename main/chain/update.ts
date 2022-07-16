@@ -2,21 +2,27 @@ import Schema from '../schema.js';
 import where from './where.js';
 import { methodKey } from '../common.js';
 import { updateQueue } from '../queue.js';
-import type { Options, BaseChain, Result, CTX } from '../common.js';
+import type { Options, BaseChain, Result } from '../common.js';
 
 const { toString } = Object.prototype;
 
-interface Entity { [index: string]: unknown }
+interface Entity { [i: string]: unknown }
 
-interface Chain extends BaseChain<any> {
-  update?: (data: Entity) => this
+interface Chain extends Partial<BaseChain> {
+  /**
+   * 为符合匹配条件的数据赋值
+   * @param entity 需要更新的数据
+   */
+  set: (entity: Entity) => this
 }
 
-export default function (schema: Schema, options: Options, result: Result): Chain {
+export type UpdatePromise = Promise<any> & Partial<Chain>
+
+export default function (schema: Schema, options: Options, result: Result): UpdatePromise {
 
   const SET = [];
 
-  const ctx: CTX = {
+  const ctx = {
     schema,
     options,
     SET,
@@ -37,7 +43,7 @@ export default function (schema: Schema, options: Options, result: Result): Chai
 
   const { fields } = schema;
 
-  Object.assign(promise, {
+  const chain: Chain = {
     ctx,
     where,
     /**
@@ -114,7 +120,9 @@ export default function (schema: Schema, options: Options, result: Result): Chai
       return this;
 
     }
-  });
+  }
+
+  Object.assign(promise, chain);
 
   return promise;
 

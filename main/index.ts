@@ -1,7 +1,6 @@
 import Schema from './schema.js';
-import Struct from './types/Struct.js';
-
-import Type from './types/Type.js';
+import Type from './types/createType.js';
+import Struct from './types/createStruct.js';
 import Model, { models } from './model.js';
 import VModel from './vmodel.js';
 import operator from './operator/index.js';

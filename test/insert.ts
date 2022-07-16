@@ -53,7 +53,7 @@ test('insert conflict pk', async t => {
 
   const result = await tasks(options)
     .insert(tasks1)
-    .conflict()
+    .conflict('id');
 
   t.ok(result === null);
 
@@ -63,7 +63,7 @@ test('insert conflict nothing', async t => {
 
   const result = await tasks(options)
     .insert(tasks1)
-    .conflict("id")
+    .conflict("id");
 
   t.ok(result === null);
 
@@ -90,7 +90,10 @@ test('insert return', async t => {
     .insert(tasks2)
     .return('uid', 'state')
 
-  const schema = new Schema({ uid: Number, state: Boolean });
+  const schema = new Schema({
+    uid: Number,
+    state: Boolean
+  });
 
   const { data, error } = schema.verify(result);
 

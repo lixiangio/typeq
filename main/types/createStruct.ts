@@ -18,7 +18,6 @@ export interface StructObject {
   options?: TypeOptions
   /** 类型方法 */
   [methodKey]?: Method
-
 }
 
 const { toString } = Object.prototype;

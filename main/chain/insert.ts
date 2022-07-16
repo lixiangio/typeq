@@ -1,18 +1,36 @@
 import Schema from '../schema.js';
 import { methodKey } from '../common.js';
 import { insertQueue } from '../queue.js';
-import type { Options, Result } from '../common.js';
+import type { CTX, Options, Result } from '../common.js';
 
 const { hasOwnProperty } = Object.prototype;
 
-interface InsertChain extends Promise<any> {
-   insert?: (data: object[] | object) => this
-   conflict?: (field: string, update: boolean) => this
-   return?: (...fields: string[]) => this
-   _return?: (...exclude: string[]) => this
+interface Chain {
+   ctx: CTX
+   /**
+    * 插入新数据
+    * @param entity 数据实体
+    */
+   insert: (entity) => InsertPromise
+   /**
+    * 在插入数据时，如果数据不存在，执行 insert 操作，否则执行 update 操作
+    * @param field 冲突约束字段名
+    * @param update 发生冲突时执行更新操作
+    */
+   conflict: (field: string, update?: boolean) => InsertPromise
+   /**
+    * 返回指定字段
+    */
+   return: (...fields: string[]) => InsertPromise
+   /**
+    * 排除指定字段
+    */
+   _return: (...fields: string[]) => InsertPromise
 }
 
-export default function (schema: Schema, options: Options, result: Result): InsertChain {
+export type InsertPromise<T = any> = Promise<{ id?: number } & T> & Partial<Chain>
+
+export default function (schema: Schema, options: Options, result: Result): InsertPromise {
 
    const KEYS = [], VALUES = [];
 
@@ -38,13 +56,9 @@ export default function (schema: Schema, options: Options, result: Result): Inse
       }
    });
 
-   Object.assign(promise, {
+   const chain: Chain = {
       ctx,
-      /**
-       * 插入新数据
-       * @param entity 数据实体
-       */
-      insert(entity: object | object[]) {
+      insert(entity) {
 
          if (typeof entity !== 'object') {
             throw ctx.error = new Error('参数必须为对象类型');
@@ -116,11 +130,6 @@ export default function (schema: Schema, options: Options, result: Result): Inse
          return this;
 
       },
-      /**
-       * 在插入数据时,如果数据不存在，执行 insert 操作，否则执行 update 操作
-       * @param field 冲突字段值约束
-       * @param update 发生冲突时执行更新操作
-       */
       conflict(field: string = primaryKey, update: boolean = false) {
 
          if (update) {
@@ -145,10 +154,7 @@ export default function (schema: Schema, options: Options, result: Result): Inse
          return this;
 
       },
-      /**
-       * 返回指定字段
-       */
-      return(...names: string[]) {
+      return(...names) {
 
          const RETURNING = [];
 
@@ -160,14 +166,15 @@ export default function (schema: Schema, options: Options, result: Result): Inse
             }
          }
 
-         ctx.RETURNING = RETURNING;
+         if (RETURNING.length === 0) {
+            ctx.RETURNING = ['*'];
+         } else {
+            ctx.RETURNING = RETURNING;
+         }
 
          return this;
 
       },
-      /**
-       * 排除指定字段
-       */
       _return(...names: string[]) {
 
          const RETURNING = [];
@@ -183,7 +190,9 @@ export default function (schema: Schema, options: Options, result: Result): Inse
          return this;
 
       }
-   });
+   }
+
+   Object.assign(promise, chain);
 
    return promise;
 

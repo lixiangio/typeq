@@ -3,7 +3,11 @@ import { deleteQueue } from '../queue.js';
 import type { Options, BaseChain, Result } from '../common.js';
 import where from './where.js';
 
-export default function (schema: Schema, options: Options, result: Result): BaseChain<any> {
+interface Chain extends Partial<BaseChain> { }
+
+export type DeletePromise = Promise<any> & Partial<Chain>
+
+export default function (schema: Schema, options: Options, result: Result): DeletePromise {
 
    const { fields: schemaFields } = schema;
 
@@ -25,13 +29,13 @@ export default function (schema: Schema, options: Options, result: Result): Base
       }
    });
 
-   Object.assign(promise, {
+   const chain: Chain = {
       ctx,
       where,
       /**
        * 返回指定字段
        */
-      return(...fields: string[]) {
+      return(...fields) {
 
          const RETURNING = [];
 
@@ -66,7 +70,9 @@ export default function (schema: Schema, options: Options, result: Result): Base
          return this;
 
       }
-   });
+   }
+
+   Object.assign(promise, chain);
 
    return promise;
 

@@ -14,7 +14,7 @@ test('query insert', async t => {
       })
    ]);
 
-   const { data, error } = schema.verify(result.rows)
+   const { data, error } = schema.verify(result.rows);
 
    t.ok(data, error);
 

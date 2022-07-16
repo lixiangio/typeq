@@ -5,7 +5,18 @@
     "moduleResolution": "node",
     // "declarationMap": true,
     "declaration": true,
+    // "strict": true,
     // "sourceMap": true,
-    // "outDir": "dist",
+    "paths": {
+      "typeq": [
+        "./main/index"
+      ],
+      "typeq/pgclient": [
+        "./extensions/pgclient.js"
+      ],
+      "typeq/validator/*": [
+        "./validator/*"
+      ]
+    },
   }
 }

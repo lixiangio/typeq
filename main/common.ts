@@ -2,10 +2,6 @@ import Schema from './schema.js';
 
 export const methodKey = Symbol("methodKey");
 
-// interface Fn {
-//   (data: any, instance?: object): { error?: string, value?: any }
-// }
-
 /**
  * 模型实例选项
  */
@@ -50,34 +46,31 @@ export interface Fields {
 }
 
 export interface Return {
-  error?: string,
   value?: any
+  error?: string,
   next?: boolean
 }
 
-// interface Result {
-//   value?: unknown,
-//   error?: string
-// }
-
-// interface Types {
-//   [name: string]: {
-//     (options: object): {
-//       type: () => Result
-//     }
-//   }
-// }
-
-export interface BaseChain<T> extends Promise<T> {
-  where?: (...fields: Condition[]) => this
-  and?: (...fields: Condition[]) => this
-  or?: (...fields: Condition[]) => this
+export interface BaseChain {
+  ctx: CTX
   /**
-   * 返回指定字段
+   * where 逻辑过滤条件，等同于 and
    */
-  return?: (...select: string[] | Function[]) => this
+  where: (...fields: Condition[]) => this
   /**
-   * 字段未排除的字段
+   * and 逻辑过滤条件
    */
-  _return?: (...select: string[]) => this
+  and: (...fields: Condition[]) => this
+  /**
+   * or 逻辑过滤条件
+   */
+  or: (...fields: Condition[]) => this
+  /**
+   * 返回指定字段，未指定字段时，返回全部字段
+   */
+  return: (...fields: (string | (() => string))[]) => this
+  /**
+   * 不返回指定字段
+   */
+  _return: (...fields: string[]) => this
 }

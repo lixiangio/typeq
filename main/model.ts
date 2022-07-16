@@ -1,35 +1,84 @@
 import Schema from './schema.js';
-import insertChain from './chain/insert.js';
-import findChain from './chain/find.js';
-import updateChain from './chain/update.js';
-import deleteChain from './chain/delete.js';
-import type { Options, BaseChain } from './common.js';
+import insertChain, { type InsertPromise } from './chain/insert.js';
+import findChain, { type FindPromise } from './chain/find.js';
+import updateChain, { type UpdatePromise } from './chain/update.js';
+import deleteChain, { type DeletePromise } from './chain/delete.js';
+import type { Options } from './common.js';
 
-interface Model extends Function {
-  insert?: (data: object) => BaseChain<object | object[]>
-  select?: (...fields: string[]) => BaseChain<object[]>
-  find?: (condition: object) => BaseChain<object[]>
-  findOne?: (condition: object) => BaseChain<object>
-  findPk?: (pid: number) => BaseChain<object>
+/** 模型实例 */
+export interface Model {
+  /**
+   * 插入单条数据
+   * @param entity 插入单条时输入对象，返回对象，插入多条输入数组
+   */
+  insert: <T>(entity: T) => InsertPromise<T>
+  /**
+   * select 查询，等同于 find().select()
+   * @param fields 选择字段
+   */
+  select: (...fields: (string | (() => string))[]) => FindPromise
+  /**
+   * 查询多条
+   * @param condition 
+   */
+  find: (condition?: object) => FindPromise
+  /**
+   * 查询单条
+   * @param condition 筛选条件
+   */
+  findOne: (condition?: object) => FindPromise
+  /**
+   * 查询主键
+   * @param pid 
+   */
+  findPk: (pid: number) => FindPromise
+  /**
+   * 更新单条
+   * @param condition 更新数据
+   */
+  update: (condition: object) => UpdatePromise
+  /**
+   * 更新主键数据
+   * @param pid 主键 id 值
+   */
+  updatePk: (pid: number) => UpdatePromise
+  /**
+   * 删除数据，未指定返回值时，仅返回受影响的数据条数，否则返回 rows
+   * @param condition 筛选条件
+   */
+  delete: (condition: object) => DeletePromise
+  /**
+   * 删除指定主键的数据
+   * @param pid 主键
+   */
+  deletePk: (pid: number) => DeletePromise
+}
+
+/** 模型实例方法，调用静态方法时使用默认的初始值，传参调用可覆盖初始值 */
+interface ModelFn extends Partial<Model> {
+  /**
+   * 查询函数链，默认初始化，可静态调用，或实例传参调用
+   * @param mixing 配置混合选项
+   */
+  (mixing?: Options): Model
 }
 
 /** 模型实例集合，供外部引用 */
-interface Models { [name: string]: Model }
+export const models: { [name: string]: ModelFn } = {};
 
-export const models: Models = {};
+interface ModelClass {
+  new(table: string, schema: Schema): Function
+}
 
 /**
  * 模型构造函数
  * @param table 表名
  * @param schema 模式实例
  */
-export default function Model(table: string, schema: Schema): Model {
+// @ts-ignore
+const Model: ModelClass = function (table: string, schema: Schema): ModelFn {
 
-  /**
-   * 查询函数链，默认初始化，可静态调用，或实例传参调用
-   * @param mixing 配置混合选项
-   */
-  function model(mixing?: Options) {
+  function model(mixing?: Options): Model {
 
     const options = {
       client: 'default',
@@ -42,11 +91,7 @@ export default function Model(table: string, schema: Schema): Model {
     const { primaryKey } = schema;
 
     return {
-      /**
-       * 插入单条数据
-       * @param data 插入单条时输入对象，返回对象，插入多条输入数组
-       */
-      insert(data: object | object[]): Promise<object | object[]> {
+      insert(entity) {
 
         const chain = insertChain(schema, options, ctx => {
           const { length } = ctx.VALUES;
@@ -58,15 +103,11 @@ export default function Model(table: string, schema: Schema): Model {
           }
         });
 
-        chain.insert(data);
+        chain.insert(entity);
 
         return chain;
 
       },
-      /**
-       * select 查询，等同于 find().select()
-       * @param fields 选择字段
-       */
       select(...fields: string[]) {
 
         const chain = findChain(schema, options, ctx => ctx.body.rows);
@@ -76,11 +117,7 @@ export default function Model(table: string, schema: Schema): Model {
         return chain;
 
       },
-      /**
-       * 查询多条
-       * @param condition 
-       */
-      find(condition: object): Promise<object[]> {
+      find(condition: object) {
 
         const chain = findChain(schema, options, ctx => ctx.body.rows);
 
@@ -89,11 +126,7 @@ export default function Model(table: string, schema: Schema): Model {
         return chain;
 
       },
-      /**
-       * 查询单条
-       * @param condition 筛选条件
-       */
-      findOne(condition: object): Promise<object | null> {
+      findOne(condition) {
 
         const chain = findChain(schema, options, ctx => ctx.body.rows[0] || null);
 
@@ -104,11 +137,7 @@ export default function Model(table: string, schema: Schema): Model {
         return chain;
 
       },
-      /**
-       * 查询主键
-       * @param pid 
-       */
-      findPk(pid: number): Promise<object | null> {
+      findPk(pid: number) {
 
         const chain = findChain(schema, options, ctx => ctx.body.rows[0] || null);
 
@@ -119,11 +148,7 @@ export default function Model(table: string, schema: Schema): Model {
         return chain;
 
       },
-      /**
-       * 更新单条
-       * @param condition 更新数据
-       */
-      update(condition: object): Promise<object[] | { rowCount: number }> {
+      update(condition: object) {
 
         const chain = updateChain(schema, options, ctx => {
           if (ctx.RETURNING.length) {
@@ -139,27 +164,16 @@ export default function Model(table: string, schema: Schema): Model {
         return chain;
 
       },
-      /**
-       * 更新主键数据
-       * @param pid 主键 id 值
-       * @param data 更新数据
-       */
-      updatePk(pid: number, data: object): Promise<object | null> {
+      updatePk(pid: number) {
 
         const chain = updateChain(schema, options, ctx => ctx.body.rows[0] || null);
-
-        chain.update(data);
 
         chain.where({ [primaryKey]: pid });
 
         return chain;
 
       },
-      /**
-       * 删除数据，未指定返回值时，仅返回受影响的数据条数，否则返回 rows
-       * @param condition 筛选条件
-       */
-      delete(condition: object): Promise<object[] | { rowCount: number }> {
+      delete(condition: object) {
 
         const chain = deleteChain(schema, options, ctx => {
           if (ctx.RETURNING.length) {
@@ -175,11 +189,7 @@ export default function Model(table: string, schema: Schema): Model {
         return chain;
 
       },
-      /**
-       * 删除指定主键的数据
-       * @param pid 主键
-       */
-      deletePk(pid: number): Promise<object | null> {
+      deletePk(pid: number) {
 
         const chain = deleteChain(schema, options, ctx => ctx.body.rows[0] || null);
 
@@ -189,7 +199,7 @@ export default function Model(table: string, schema: Schema): Model {
 
         return chain;
 
-      },
+      }
     };
 
   }
@@ -205,3 +215,5 @@ export default function Model(table: string, schema: Schema): Model {
   return model;
 
 };
+
+export default Model;

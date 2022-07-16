@@ -1,14 +1,13 @@
-import Type from './Type.js';
-import Struct, { type StructFunction, type StructObject } from './Struct.js';
+import Type from './createType.js';
 import { sqlString, jsonString } from '../safety.js';
-import { methodKey } from '../common.js';
 import isISO8601 from '../../validator/isISO8601.js';
+import { json, jsonb, object, array, optional } from './json.js';
 
 const CommonMethods = {
   /** 默认值 */
   default(value, defaultValue) {
     if (value === undefined) {
-      return { value: defaultValue };
+      return { value: `'|| ${defaultValue} ||'` };
     } else {
       return { value, next: true };
     }
@@ -41,7 +40,7 @@ const AfterMethods = {
 const IntegerMethods = {
   /** JSON 序列 */
   sequence(value: number, isSequence: boolean, info, path: string) {
-    if (value === undefined && isSequence === true) {
+    if (isSequence === true && value === undefined) {
       const { schema, table } = info;
       return { value: `' || nextval('${schema}.${table}.${path}') || '` };
     }
@@ -73,10 +72,10 @@ const IntegerMethods = {
   },
 }
 
-export const integer = Type('integer', IntegerMethods);
-export const bigint = Type('bigint', IntegerMethods);
+const integer = Type('integer', IntegerMethods);
+const bigint = Type('bigint', IntegerMethods);
 
-export const float = Type('float', {
+const float = Type('float', {
   ...CommonMethods,
   type(value: number) {
     if (isNaN(value) === false && parseFloat(String(value)) !== NaN) {
@@ -86,9 +85,6 @@ export const float = Type('float', {
     }
   }
 })
-
-export const number = float;
-
 
 const StringMethods = {
   ...CommonMethods,
@@ -145,13 +141,10 @@ const StringAfterMethods = {
   }
 }
 
-export const char = Type('char', StringMethods, StringAfterMethods);
-export const varchar = Type('varchar', StringMethods, StringAfterMethods);
+const char = Type('char', StringMethods, StringAfterMethods);
+const varchar = Type('varchar', StringMethods, StringAfterMethods);
 
-export const string = varchar;
-export const text = varchar;
-
-export const boolean = Type('boolean', {
+const boolean = Type('boolean', {
   ...CommonMethods,
   type(value: boolean) {
     if (typeof value === 'boolean') {
@@ -162,7 +155,7 @@ export const boolean = Type('boolean', {
   }
 })
 
-export const date = Type('date', {
+const date = Type('date', {
   ...CommonMethods,
   type(value: Date) {
     const date = Date.parse(String(value));
@@ -174,7 +167,7 @@ export const date = Type('date', {
   }
 }, AfterMethods);
 
-export const timestamp = Type('timestamp', {
+const timestamp = Type('timestamp', {
   ...CommonMethods,
   type(entity: Date) {
     // if (entity instanceof Date) {
@@ -189,7 +182,7 @@ export const timestamp = Type('timestamp', {
   }
 }, AfterMethods);
 
-export const range = Type('range', {
+const range = Type('range', {
   ...CommonMethods,
   type(value: number[]) {
     if (Array.isArray(value)) {
@@ -210,7 +203,7 @@ export const range = Type('range', {
 });
 
 /** integer 数组 */
-export const integers = Type('integer[]', {
+const integers = Type('integer[]', {
   ...CommonMethods,
   type(value: number[]) {
     if (Array.isArray(value)) {
@@ -226,101 +219,27 @@ export const integers = Type('integer[]', {
   }
 });
 
-export const json = Struct('json', {
-  type(value: object) {
-    if (typeof value === 'object') {
-      return { value, next: true };
-    } else {
-      return { error: `值必须为 json 类型，实际赋值为 '${value}'` };
-    }
-  }
-});
-
-export const jsonb = Struct('jsonb', {
-  type(value: object) {
-    if (typeof value === 'object') {
-      return { value, next: true };
-    } else {
-      return { error: `值必须为 jsonb 类型，实际赋值为 '${value}'` };
-    }
-  }
-});
-
-const { toString } = Object.prototype;
-
-/** 值为严格对象类型 */
-export const object = Struct("jsonb", {
-  type(value: object) {
-    if (toString.call(value) === '[object Object]') {
-      return { value, next: true };
-    } else {
-      return { error: `值必须为 object 类型，实际赋值为 '${value}'` };
-    }
-  }
-});
-
-/** 值为 array 类型 */
-export const array = Struct('jsonb', {
-  type(value: unknown[]) {
-    if (Array.isArray(value)) {
-      return { value, next: true };
-    } else {
-      return { error: `值必须为 array 类型，实际赋值为 '${value}'` };
-    }
-  }
-});
-
-/**
- * 可选类型辅助函数
- * @param node 类型节点
- */
-export function optional(node: StructFunction | StructObject | object | any[]) {
-
-  const method: Function = node[methodKey];
-
-  if (Array.isArray(node)) {
-
-    return array(node, { optional: true });
-
-  } else if (toString.call(node) === '[object Object]') {
-
-    return object(node, { optional: true });
-
-  } else if (method) {
-
-    // node 为类型实例对象
-    if (typeof node === 'object') {
-
-      const { name, options } = node as StructObject;
-
-      return {
-        name,
-        options: {
-          ...options,
-          optional: true
-        },
-        [methodKey]: method
-      };
-
-    }
-
-    // node 为静态类型函数
-    else if (typeof node === 'function') {
-
-      const { name } = node as StructFunction;
-
-      return {
-        name,
-        options: { optional: true },
-        [methodKey]: method
-      };
-
-    }
-
-  } else {
-
-    throw new Error('optional() 可选类型函数参数无效');
-
-  }
-
+const types = {
+  integer,
+  bigint,
+  float,
+  number: float,
+  char,
+  varchar,
+  string: varchar,
+  text: varchar,
+  boolean,
+  date,
+  timestamp,
+  range,
+  integers,
+  json,
+  jsonb,
+  object,
+  array,
+  optional
 }
+
+export type Types = { [name: string]: Function } & (typeof types)
+
+export default types;

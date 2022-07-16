@@ -41,7 +41,7 @@ test('deletePk', async t => {
       .insert(tasks2)
       .return('id');
 
-   const result = await tasks
+   const result: any = await tasks
       .deletePk(id);
 
    t.deepEqual(result.id, id);
@@ -50,7 +50,7 @@ test('deletePk', async t => {
 
 test('deletePk null', async t => {
 
-   const result = await tasks.deletePk(99999999)
+   const result = await tasks.deletePk(99999999);
 
    t.deepEqual(result, null);
 
@@ -70,9 +70,9 @@ test('deletePk & return', async t => {
       state: Boolean
    });
 
-   const { data, error } = schema.verify(result)
+   const { value, error } = schema.verify(result)
 
-   t.ok(data, error);
+   t.ok(value, error);
 
 })
 
@@ -94,8 +94,8 @@ test('deletePk & _return', async t => {
       modes: {},
    });
 
-   const { data, error } = schema.verify(result)
+   const { value, error } = schema.verify(result)
 
-   t.ok(data, error);
+   t.ok(value, error);
 
-})
+});

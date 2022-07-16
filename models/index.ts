@@ -1,11 +1,11 @@
 import { queue } from 'typeq';
 import pgclient from 'typeq/pgclient';
-import config from '../config/localhost.js'
 import user from './user.js';
 import admin from './admin.js';
 import tasks from './tasks.js';
 import vtasks from './vtasks.js';
 import tasksUser from './tasksUser.js';
+import config from '../config/localhost.js'
 
 export default {
   user,

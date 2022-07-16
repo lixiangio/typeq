@@ -19,7 +19,6 @@ export default function (client: string = 'default') {
     },
     /**
      * 同步单个模型
-     * @param path schema.table 路径
      * @param mode 同步模式
      */
     async sync(model, { schema = 'public', mode = 'default' }) {

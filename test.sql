@@ -18,7 +18,7 @@ VALUES (
     json(
       '[{"address": [{"name": "aa","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"test": {},"state": true,"createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"address": [{"name": "' || now() || '","createdAt": "' || now() || '","updatedAt": "' || now() || '"},{"name": "bbbb","createdAt": "' || now() || '","updatedAt": "' || now() || '"}],"test": {},"state": false,"createdAt": "' || now() || '","updatedAt": "' || now() || '"}]'
     ),
-    'xxx',
+    ''|| now() ||'',
     '{}'::jsonb,
     false,
     now(),

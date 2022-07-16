@@ -1,6 +1,7 @@
 // import test from 'jtm';
 // import { object, Schema } from 'typea';
 // import { operator, models } from 'typeq';
+
 // const schema = new Schema([
 //    ...object({
 //       id: Number,
@@ -13,9 +14,12 @@
 //       list: Array
 //    })
 // ]);
+
 // const { $in, $as } = operator;
 // const { tasksUser } = models;
+
 // test('union', async t => {
+
 //    const result = await tasksUser()
 //       .select('id', 'keywords', $as("email", "xx"))
 //       .where({
@@ -32,10 +36,13 @@
 //       })
 //       .or({ 'id': 5 })
 //       .limit(10)
+
 //    const { error, data } = schema.verify(result);
+
 //    if (error) {
 //       throw TypeError(error);
 //    } else {
 //       t.ok(data)
 //    }
+
 // })

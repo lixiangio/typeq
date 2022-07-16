@@ -1,4 +1,4 @@
-import { Type, Struct, safetyValue } from 'typeq';
+import { Type } from 'typeq';
 import isMobilePhone from 'typeq/validator/isMobilePhone.js';
 import isEmail from 'typeq/validator/isEmail.js';
 
