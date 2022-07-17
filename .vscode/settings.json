@@ -17,4 +17,5 @@
       "group": "localhost"
     }
   ],
+  "liveServer.settings.port": 5501,
 }

@@ -42,6 +42,4 @@ export const schema = new Schema({
   updatedAt: timestamp({ default: 'now()' }),
 });
 
-// console.log(schema);
-
 export default new Model('tasks', schema);

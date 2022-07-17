@@ -49,7 +49,7 @@ test('_return', async t => {
     ...object({
       id: Number,
       uid: 6,
-      list: [],
+      list: [...object],
       area: String,
       modes: {},
       state: false

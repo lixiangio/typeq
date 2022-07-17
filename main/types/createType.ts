@@ -1,15 +1,6 @@
-import { methodKey } from '../common.js';
-import type { Method, TypeOptions, QueryMethods } from './common.js';
-
-/** 默认的 SQL、JSON 字符串输出前的差异化处理函数 */
-const _outputs = {
-  /** 输出为 SQL */
-  sql(value: unknown) { return { value }; },
-  /** 输出为 JSON */
-  json(value: string) { return { value }; }
-}
-
-export type Outputs = typeof _outputs;
+import { methodKey, } from '../common.js';
+import { _outputs } from './common.js';
+import type { Outputs, Method, TypeOptions, QueryMethods } from './common.js';
 
 export interface TypeObject {
   /** 数据类型 */

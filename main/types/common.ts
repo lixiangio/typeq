@@ -1,5 +1,15 @@
 import { type Return, type CTX } from '../common.js';
 
+/** 默认的 SQL、JSON 字符串输出前的差异化处理函数 */
+export const _outputs = {
+  /** 输出为 SQL */
+  sql(value: unknown) { return { value }; },
+  /** 输出为 JSON */
+  json(value: string) { return { value }; }
+}
+
+export type Outputs = typeof _outputs;
+
 /** 类型验证方法 */
 export interface Method {
   /** 

@@ -1,5 +1,4 @@
 import Type from './createType.js';
-import { sqlString, jsonString } from '../safety.js';
 import isISO8601 from '../../validator/isISO8601.js';
 import { json, jsonb, object, array, optional } from './json.js';
 
@@ -57,9 +56,9 @@ const StringMethods = {
   ...baseMethods,
   type(value: string) {
     if (typeof value === 'string') {
-      return { value: sqlString(value), next: true };
+      // SQL 单引号转义
+      return { value: value.replace(/'/g, "''"), next: true };
     } else {
-      console.log(value)
       return { error: ` 值必须为 string 类型，实际赋值为 '${value}'` };
     }
   },
@@ -103,7 +102,9 @@ const StringOutputs = {
     if (value === undefined) {
       return { value: null };
     } else {
-      return { value: `"${value}"` };
+      // 在将 JSON 字符串插入至 SQL 之前，需要对 JSON 中的双引号、换行、回车等特殊字符进行转义，为合法的 JSON 字符串值
+      // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String#parameters_3
+      return { value: JSON.stringify(value) };
     }
   }
 }
@@ -120,7 +121,7 @@ const boolean = Type('boolean', {
       return { error: ` 值必须为 boolean 类型，实际赋值为 '${value}'` };
     }
   }
-})
+});
 
 const DateOutputs = {
   /** 返回至 SQL */

@@ -1,6 +1,7 @@
-import { safetyJson } from '../safety.js';
+import { jsonToSql } from '../safety.js';
 import { methodKey, type CTX, type Return } from '../common.js';
-import type { Method, TypeOptions } from './common.js';
+import { _outputs } from './common.js';
+import type { Method, TypeOptions, Outputs } from './common.js';
 
 export interface StructFunction extends Function {
   /** 类型名称 */
@@ -158,16 +159,6 @@ export interface StructMethods {
   [index: string]: (entity: unknown, option: unknown, ctx: CTX, path: string) => Return
 }
 
-/** 默认的 SQL、JSON 字符串输出前的差异化处理函数 */
-const _outputs = {
-  /** 输出为 SQL */
-  sql(value: unknown) { return { value }; },
-  /** 输出为 JSON */
-  json(value: string) { return { value }; }
-}
-
-export type Outputs = typeof _outputs;
-
 export interface StructObject {
   /** 类型名称 */
   name: string
@@ -224,7 +215,7 @@ export default function Struct(name: string, methods: StructMethods, outputs: Ou
       if (error) {
         return { error };
       } else {
-        return { value: safetyJson(value) };
+        return { value: jsonToSql(value) };
       }
     }
   });

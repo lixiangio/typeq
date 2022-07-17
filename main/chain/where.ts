@@ -1,4 +1,4 @@
-import { sqlString } from '../safety.js';
+import { safetySQL, jsonToSql } from '../safety.js';
 import type { CTX } from '../common.js';
 
 /**
@@ -38,11 +38,11 @@ function converter(parameter: object[], ctx: CTX): string {
          // 对象
          else if (value instanceof Object) {
 
-            AND.push(`${field} = '${sqlString(JSON.stringify(value))}'`);
+            AND.push(`${field} = '${jsonToSql(value)}'`);
 
          } else {
 
-            AND.push(`${field} = '${sqlString(value)}'`);
+            AND.push(`${field} = '${safetySQL(value)}'`);
 
          }
 

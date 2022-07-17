@@ -1,4 +1,4 @@
-import { safetyJson } from '../safety.js';
+import { jsonToSql } from '../safety.js';
 
 /**
  * 数据更新运算符
@@ -9,14 +9,14 @@ export default {
    * @param value 一个或多个值
    */
    $includes(value: object | any[]) {
-    return () => `@> '${safetyJson(value)}'::jsonb`;
+    return () => `@> '${jsonToSql(value)}'::jsonb`;
   },
   /**
    * 合并 jsonb 对象
    */
   $merge(value: object) {
     return function (field: string) {
-      return `"${field}" || '${safetyJson(value)}'::jsonb`;
+      return `"${field}" || '${jsonToSql(value)}'::jsonb`;
     }
   },
   /**
@@ -24,7 +24,7 @@ export default {
    */
   $set(path: string, value, missing = true) {
     return function (field: string) {
-      const json = safetyJson(value);
+      const json = jsonToSql(value);
       return `jsonb_set("${field}", '${path}', '${json}'::jsonb, ${missing})`
     }
   },
@@ -33,7 +33,7 @@ export default {
    */
   $insert(field: string, path: string, value, after = false) {
     return function () {
-      const json = safetyJson(value);
+      const json = jsonToSql(value);
       return `jsonb_insert("${field}", '${path}', '${json}'::jsonb, ${after})`;
     }
   },
@@ -42,7 +42,7 @@ export default {
    */
   $insertByPath(path: string, value) {
     return function (field: string) {
-      const json = safetyJson(value);
+      const json = jsonToSql(value);
       return `jsonb_insert("${field}", '${path}', '${json}'::jsonb)`;
     }
   },
@@ -51,7 +51,7 @@ export default {
    */
   $insertFirst(value) {
     return function (field: string) {
-      const json = safetyJson(value);
+      const json = jsonToSql(value);
       return `jsonb_insert("${field}", '{0}', '${json}'::jsonb)`;
     }
   },

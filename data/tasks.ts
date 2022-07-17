@@ -7,7 +7,10 @@ export const tasks0 = {
   email: "abs@xx.cc",
   keywords: {
     state: false,
-    area: `\\k'kkk"k<script\n\t type="text/javascript" src="/app.js"></script>`
+    area: `'kkk"k<script\n\t\n
+    \t  \b\f    \v 
+    type="text/javascript" 
+    src="/app.js"></script>`
   },
   list: [
     {
@@ -37,7 +40,7 @@ export const tasks0 = {
       'test': {},
     }
   ],
-  area: "xxx",
+  area: "xxx\n\t",
   state: false
 };
 
