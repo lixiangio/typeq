@@ -71,7 +71,7 @@ test('$scope', async t => {
       'id': 5,
       'state': false,
     })
-    .limit(10)
+    .limit(10);
 
   const { data, error } = schema.verify(result);
 

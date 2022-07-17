@@ -1,6 +1,6 @@
 import test from 'jtm';
-import { Schema, Utility, object, string } from 'typea';
 import { operator, models } from 'typeq';
+import { Schema, Utility, object, string } from 'typea';
 
 const { union } = Utility;
 const { $as } = operator;

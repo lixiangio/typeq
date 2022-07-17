@@ -15,6 +15,6 @@ test('sync', async t => {
 
    // await client().syncAll('public', 'add');
 
-   // t.ok();
+   t.ok(true);
 
 });

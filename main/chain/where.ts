@@ -19,30 +19,29 @@ function converter(parameter: object[], ctx: CTX): string {
 
       const AND = [];
 
-      for (const name in item) {
+      for (const field in item) {
 
-         if (fields[name] === undefined) {
-            throw ctx.error = new Error(` ${table} 表模型中不存在 ${name} 字段`);
+         if (fields[field] === undefined) {
+            throw ctx.error = new Error(` ${table} 表模型中不存在 ${field} 字段`);
          }
 
-         const field = `"${name}"`;
-         const value = item[name];
+         const value = item[field];
 
          // 函数运算符
          if (value instanceof Function) {
 
-            AND.push(`${field} ${value(field)}`);
+            AND.push(`"${field}" ${value(field)}`);
 
          }
 
          // 对象
          else if (value instanceof Object) {
 
-            AND.push(`${field} = '${jsonToSql(value)}'`);
+            AND.push(`"${field}" = '${jsonToSql(value)}'`);
 
          } else {
 
-            AND.push(`${field} = '${safetySQL(value)}'`);
+            AND.push(`"${field}" = '${safetySQL(value)}'`);
 
          }
 

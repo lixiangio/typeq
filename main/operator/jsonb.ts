@@ -5,14 +5,14 @@ import { jsonToSql } from '../safety.js';
  */
 export default {
   /**
-   * 包含匹配，从 jsonb 中筛选符合条件的数据
+   * 查找包含的对象，从 jsonb 中筛选符合条件的数据
    * @param value 一个或多个值
    */
-   $includes(value: object | any[]) {
+  $includes(value: object | any[]) {
     return () => `@> '${jsonToSql(value)}'::jsonb`;
   },
   /**
-   * 合并 jsonb 对象
+   * 合并 json 对象
    */
   $merge(value: object) {
     return function (field: string) {
@@ -20,7 +20,7 @@ export default {
     }
   },
   /**
-   * 设置 jsonb 对象，支持 jsonb_set 所有功能的完整版本
+   * 设置 json 对象，支持 jsonb_set 所有功能的完整版本
    */
   $set(path: string, value, missing = true) {
     return function (field: string) {
@@ -29,7 +29,7 @@ export default {
     }
   },
   /**
-   * 插入 jsonb 对象，支持 jsonb_insert 所有功能的完整版本
+   * 插入 json 对象，支持 jsonb_insert 所有功能的完整版本
    */
   $insert(field: string, path: string, value, after = false) {
     return function () {
@@ -47,7 +47,7 @@ export default {
     }
   },
   /**
-   * 在第一个元素前插入 jsonb 对象，预设 path 为起始位置的极简操作符
+   * 在第一个元素前插入 json 对象，预设 path 为起始位置的极简操作符
    */
   $insertFirst(value) {
     return function (field: string) {

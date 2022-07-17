@@ -51,7 +51,7 @@ export default {
    * @param end 结束值
    */
   $scope(start: number, end: number) {
-    return (field: string) => `>= ${safetySQL(start)} AND ${field.split('.').join('"."')} < ${safetySQL(end)}`;
+    return (field: string) => `>= ${safetySQL(start)} AND "${field.split('.').join('"."')}" < ${safetySQL(end)}`;
   },
   /**
    * 仅用于range范围数据类型
