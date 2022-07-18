@@ -1,4 +1,4 @@
-import { queue } from 'typeq';
+import { queue, Clients } from 'typeq';
 import pgclient from 'typeq/pgclient';
 import config from './config/localhost.js';
 import './models/index.js';
@@ -20,4 +20,4 @@ queue.delete(ctx => {
 // queue.after(ctx => {
 //   console.log(`\x1b[33m[SQL] ${ctx.SQL}\x1b[39m`);
 // })
-queue.use(pgclient(config));
+const clients = new Clients(pgclient, config);

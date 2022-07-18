@@ -8,29 +8,25 @@ const { $merge } = operator;
 test('update $merge', async t => {
 
   const result = await tasks
-    .update({ id: 1 })
+    .updatePk(1)
     .set({
       "keywords": $merge({
         "area": "5'68",
         "state": false
       })
-    });
-
-  console.log(result)
+    })
+    .return('id', 'keywords');
 
   const types = new Schema({
     id: Number,
-    keywords: Object,
-    email: String,
-    area: String,
-    state: Boolean,
-    createdAt: Date,
-    updatedAt: Date,
-    list: Array
+    keywords: {
+      "area": String,
+      "state": Boolean
+    }
   });
 
-  const { error, data } = types.verify(result);
+  const { value, error } = types.verify(result);
 
-  t.ok(data, error);
+  t.ok(value, error);
 
 })

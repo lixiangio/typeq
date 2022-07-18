@@ -4,12 +4,13 @@ const { $insertFirst } = operator;
 const { tasks } = models;
 test('update $insertFirst', async (t) => {
     const result = await tasks
-        .update({ id: 4 })
+        .updatePk(1)
         .set({
         list: $insertFirst({
             "area": "ggg'gggg'gg",
             "state": false
         })
-    });
-    console.log(result.rowCount);
+    })
+        .return('id', 'list');
+    console.log(result.id);
 });

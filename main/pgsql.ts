@@ -52,11 +52,11 @@ export default function (queue: typeof Queue) {
 
     const WHERE = ctx.WHERE.length ? ` WHERE ${ctx.WHERE.join('')}` : '';
 
-    const RETURNING = ctx.RETURNING.length ? ctx.RETURNING.join(', ') : `"${ctx.schema.primaryKey}"`;
+    const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
     const { schema, table } = ctx.options;
 
-    ctx.SQL = `UPDATE "${schema}"."${table}" SET ${SET}${WHERE} RETURNING ${RETURNING}`;
+    ctx.SQL = `UPDATE "${schema}"."${table}" SET ${SET}${WHERE}${RETURNING}`;
 
   })
 
@@ -64,11 +64,11 @@ export default function (queue: typeof Queue) {
 
     const WHERE = ctx.WHERE.length ? ` WHERE ${ctx.WHERE.join('')}` : '';
 
-    const RETURNING = ctx.RETURNING.length ? ctx.RETURNING.join(', ') : `"${ctx.schema.primaryKey}"`;
+    const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
     const { schema, table } = ctx.options;
 
-    ctx.SQL = `DELETE FROM "${schema}"."${table}"${WHERE} RETURNING ${RETURNING}`;
+    ctx.SQL = `DELETE FROM "${schema}"."${table}"${WHERE}${RETURNING}`;
 
   })
 

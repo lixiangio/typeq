@@ -27,7 +27,7 @@ test('select', async (t) => {
 });
 test('_return', async (t) => {
     const result = await tasks(options)
-        .find({ "uid": '6' })
+        .find({ "uid": 6 })
         .limit(2)
         .order({
         "id": "desc",

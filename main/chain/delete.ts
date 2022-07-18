@@ -1,4 +1,5 @@
 import Schema from '../schema.js';
+import { query } from '../index.js';
 import { deleteQueue } from '../queue.js';
 import type { Options, CTX, Condition } from '../common.js';
 import where from './where.js';
@@ -43,15 +44,6 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
       error: undefined
    };
 
-   const promise = Promise.resolve().then(() => {
-      const { error } = ctx;
-      if (error) {
-         return { error };
-      } else {
-         return deleteQueue(ctx).then(result);
-      }
-   });
-
    const chain: DeleteChain = {
       ctx,
       where,
@@ -94,6 +86,18 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
 
       }
    };
+
+   const promise = Promise.resolve().then(() => {
+      for (const item of deleteQueue) {
+         item(ctx);
+      }
+      const { error } = ctx;
+      if (error) {
+         return { error };
+      } else {
+         return query(ctx).then(result);
+      }
+   });
 
    Object.assign(promise, chain);
 

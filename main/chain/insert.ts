@@ -1,4 +1,5 @@
 import Schema from '../schema.js';
+import { query } from '../index.js';
 import { methodKey } from '../common.js';
 import { insertQueue } from '../queue.js';
 import type { CTX, Options } from '../common.js';
@@ -98,15 +99,6 @@ export default function (schema: Schema, options: Options, list: object[], resul
 
    }
 
-   const promise: Promise<any> = Promise.resolve().then(() => {
-      const { error } = ctx;
-      if (error) {
-         return { error };
-      } else {
-         return insertQueue(ctx).then(result);
-      }
-   });
-
    const chain: Chain = {
       ctx,
       conflict(field: string = primaryKey, update: boolean = false) {
@@ -170,6 +162,18 @@ export default function (schema: Schema, options: Options, list: object[], resul
 
       }
    };
+
+   const promise: Promise<any> = Promise.resolve().then(() => {
+      for (const item of insertQueue) {
+         item(ctx);
+      }
+      const { error } = ctx;
+      if (error) {
+         return { error };
+      } else {
+         return query(ctx).then(result);
+      }
+   });
 
    Object.assign(promise, chain);
 

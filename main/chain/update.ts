@@ -1,4 +1,5 @@
 import Schema from '../schema.js';
+import { query } from '../index.js';
 import where from './where.js';
 import { methodKey } from '../common.js';
 import { updateQueue } from '../queue.js';
@@ -53,15 +54,6 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
     error: undefined
   };
 
-  const promise = Promise.resolve().then(() => {
-    const { error } = ctx;
-    if (error) {
-      return { error };
-    } else {
-      return updateQueue(ctx).then(result);
-    }
-  });
-
   const { fields } = schema;
   const { schema: schemaName, table } = options;
 
@@ -89,11 +81,19 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
 
           const child = entity[key];
 
-          const { error, value } = options[methodKey](child, [schemaName, table, key]); // 类型验证函数
+          if (typeof child === 'function') {
 
-          if (error) throw ctx.error = new Error(error);
+            SET.push(`"${key}" = ${child(key)}`);
 
-          SET.push(`"${key}" = ${value}`);
+          } else {
+
+            const { error, value } = options[methodKey](child, [schemaName, table, key]); // 类型验证函数
+
+            if (error) throw ctx.error = new Error(error);
+
+            SET.push(`"${key}" = ${value}`);
+
+          }
 
         }
 
@@ -143,6 +143,18 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
 
     }
   }
+
+  const promise = Promise.resolve().then(() => {
+    for (const item of updateQueue) {
+      item(ctx);
+    }
+    const { error } = ctx;
+    if (error) {
+      return { error };
+    } else {
+      return query(ctx).then(result);
+    }
+  });
 
   Object.assign(promise, chain);
 

@@ -1,6 +1,5 @@
-import { queryQueue } from './queue.js';
+import { query } from './index.js';
 import type { ModelFn } from './model.js';
-
 
 /**
  * 获取指定客户端
@@ -14,34 +13,9 @@ export default function (client: string = 'default') {
      */
     query(SQL: string) {
 
-      const ctx = { options: { client }, SQL };
-
-      return queryQueue(ctx).then(ctx => ctx.body);
+      return query({ options: { client }, SQL }).then(ctx => ctx.body);
 
     },
-    /**
-     * 同步单个模型
-     * @param mode 同步模式
-     */
-    async sync(model: ModelFn, { schema = 'public', mode = 'default' }) {
-
-      const { fields } = model.schema;
-
-      const ctx = { options: { client }, SQL: '' };
-
-      return queryQueue(ctx).then(ctx => ctx.body);
-
-    },
-    /**
-     * 批量同步所有模型
-     * @param schema pg 中表分组（架构）
-     * @param mode 同步模式
-     */
-    // async syncs({ schema = 'public', mode: string }) {
-
-    //   return
-
-    // },
     /**
    * 创建事务对象
    */

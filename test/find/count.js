@@ -1,11 +1,12 @@
 import test from 'jtm';
-import { Schema, object } from 'typea';
 import { models } from 'typeq';
+import { Schema, object } from 'typea';
 const { tasks } = models;
 test('find & count', async (t) => {
     const findPromise = tasks.find({ 'id': 1, });
     const countPromise = findPromise.count(true);
     const [list, count] = await Promise.all([findPromise, countPromise]);
+    console.log(count);
     const schema = new Schema([
         {
             id: 1,

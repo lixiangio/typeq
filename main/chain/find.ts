@@ -1,4 +1,5 @@
 import where from './where.js';
+import { query } from '../index.js';
 import { findQueue } from '../queue.js';
 import type { Condition, CTX, Options, Data } from '../common.js';
 import Schema from '../schema.js';
@@ -15,29 +16,30 @@ export type FindPromise<T = Data[]> = Promise<T> & Partial<{
    and?: (...fields: Condition[]) => FindPromise<T>
    /** or 逻辑过滤条件 */
    or?: (...fields: Condition[]) => FindPromise<T>
-   /** 返回指定字段，未指定字段时，返回全部字段  */
-   return: (...fields: string[]) => FindPromise<T>
-   /** 不返回指定字段 */
-   _return: (...fields: string[]) => FindPromise<T>
+   /** 字段聚合 */
    group: (...fields: string[]) => FindPromise<T>
-   /** 指定字段的排序方式 */
+   /** 字段排序 */
    order: (options: Directions) => FindPromise<T>
    /** 返回数据的起始位置 */
    offset: (value: number) => FindPromise<T>
    /** 限制返回数量 */
    limit: (value: number) => FindPromise<T>
+   /** 返回指定字段，未指定字段时，返回全部字段  */
+   return: (...fields: string[]) => FindPromise<T>
+   /** 不返回指定字段 */
+   _return: (...fields: string[]) => FindPromise<T>
    /** 统计数据总量 */
    count: (isNewQueue?: boolean) => FindPromise<T>
 }>;
 
 export default function <T>(schema: Schema, options: Options, result: (ctx: CTX) => any): FindPromise<T> {
 
-   const SELECT = [], ORDER = [], GROUP = [];
+   const ORDER = [], GROUP = [];
 
    const ctx = {
       options,
       schema,
-      SELECT,
+      SELECT: [],
       WHERE: [],
       GROUP,
       ORDER,
@@ -48,15 +50,6 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
    };
 
    const { fields: schemaFields } = schema;
-
-   const promise = Promise.resolve().then(() => {
-      const { error } = ctx;
-      if (error) {
-         return { error };
-      } else {
-         return findQueue(ctx).then(result);
-      }
-   });
 
    const chain = {
       ctx,
@@ -125,6 +118,8 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
        */
       return(...fields: string[]) {
 
+         const SELECT = [];
+
          for (const field of fields) {
             if (schemaFields[field]) {
                SELECT.push(`"${field}"`);
@@ -132,6 +127,8 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
                throw ctx.error = new Error(`${field} 字段不存在`);
             }
          }
+
+         ctx.SELECT = SELECT;
 
          return this;
 
@@ -142,11 +139,15 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
        */
       _return(...fields: string[]) {
 
+         const SELECT = [];
+
          for (const name in schemaFields) {
             if (fields.includes(name) === false) {
                SELECT.push(`"${name}"`);
             }
          }
+
+         ctx.SELECT = SELECT;
 
          return this;
 
@@ -162,10 +163,18 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
          if (isNewQueue) {
 
             return Promise.resolve().then(() => {
-               return findQueue({
-                  ...ctx,
-                  SELECT
-               }).then(ctx => ctx.body.rows[0])
+               for (const item of findQueue) {
+                  item(ctx);
+               }
+               const { error } = ctx;
+               if (error) {
+                  return { error };
+               } else {
+                  return query({
+                     ...ctx,
+                     SELECT
+                  }).then(ctx => ctx.body.rows[0]);
+               }
             });
 
          } else {
@@ -181,6 +190,18 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
 
       },
    };
+
+   const promise = Promise.resolve().then(() => {
+      for (const item of findQueue) {
+         item(ctx);
+      }
+      const { error } = ctx;
+      if (error) {
+         return { error };
+      } else {
+         return query(ctx).then(result);
+      }
+   });
 
    Object.assign(promise, chain);
 

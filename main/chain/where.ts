@@ -1,5 +1,5 @@
-import { safetySQL, jsonToSql } from '../safety.js';
-import type { CTX } from '../common.js';
+import { jsonToSql } from '../safety.js';
+import { type CTX, methodKey } from '../common.js';
 
 /**
  * 逻辑选项转 sql
@@ -19,29 +19,38 @@ function converter(parameter: object[], ctx: CTX): string {
 
       const AND = [];
 
-      for (const field in item) {
+      for (const name in item) {
 
-         if (fields[field] === undefined) {
-            throw ctx.error = new Error(` ${table} 表模型中不存在 ${field} 字段`);
+         const field = fields[name];
+
+         if (field === undefined) {
+            throw ctx.error = new Error(` ${table} 表模型中不存在 ${name} 字段`);
          }
 
-         const value = item[field];
 
-         // 函数运算符
+         const value = item[name];
+
+         // 函数运算符，获取其返回值
          if (value instanceof Function) {
 
-            AND.push(`"${field}" ${value(field)}`);
+            AND.push(`"${name}" ${value(name)}`);
 
          }
 
          // 对象
          else if (value instanceof Object) {
 
-            AND.push(`"${field}" = '${jsonToSql(value)}'`);
+            AND.push(`"${name}" = '${jsonToSql(value)}'`);
 
          } else {
 
-            AND.push(`"${field}" = '${safetySQL(value)}'`);
+            const result = field[methodKey](value);
+
+            if (result.error) {
+               throw ctx.error = new Error(result.error);
+            } else {
+               AND.push(`"${name}" = ${result.value}`);
+            }
 
          }
 

@@ -47,9 +47,10 @@ export default function Type(name: string, methods: QueryMethods, outputs: Outpu
 
       if (hasOwnProperty.call(options, name)) {
 
-        const method = methods[name]; // 每个有效的 node[$name] 对应一个 methods[$name]() 处理函数
-        const param = options[name];
-        typeQueue.push({ method, param });
+        typeQueue.push({
+          method: methods[name], // 每个有效的 node[$name] 对应一个 methods[$name]() 处理函数
+          param: options[name]
+        });
 
       }
 
@@ -85,7 +86,7 @@ export default function Type(name: string, methods: QueryMethods, outputs: Outpu
           }
 
         }
-
+        
         return { value: entity };
 
       }

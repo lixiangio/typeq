@@ -16,7 +16,11 @@ test('where.or.and', async (t) => {
         .select('id', 'keywords', $as("state", "xx"))
         .where({
         state: true,
-        keywords: {}
+        keywords: {
+            state: false,
+            area: "x'x"
+        },
+        area: `"1234'`
     }, {
         state: false
     })

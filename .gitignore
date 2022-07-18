@@ -2,10 +2,6 @@ npm-debug.log
 config/cockroach.js
 node_modules/
 
+*.js
 *.d.ts
 *.js.map
-
-config/**/*.js
-main/**/*.js
-models/**/*.js
-extensions/**/*.js

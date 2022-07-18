@@ -50,7 +50,7 @@ export default class Schema {
 
           const field: Field = { type: node.name };
 
-          const { struct, options, outputs } = node;
+          const { struct } = node;
 
           if (struct) {
 
@@ -66,6 +66,8 @@ export default class Schema {
 
           } else {
 
+            const { outputs } = node;
+
             field[methodKey] = (entity: string | number | Function, paths: string[]) => {
               const { error, value } = method(entity, paths);
               if (error) {
@@ -76,6 +78,8 @@ export default class Schema {
             }
 
           }
+
+          const { options } = node;
 
           if (options) {
 
