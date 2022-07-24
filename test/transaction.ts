@@ -6,7 +6,7 @@
 //   id: Number,
 //   keywords: Object,
 //   xx: String,
-// }])
+// }]);
 
 // const { $in, $as } = operator;
 // const { tasks } = models;

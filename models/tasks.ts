@@ -1,6 +1,6 @@
 import { Schema, Model } from "typeq";
 
-const { integer, boolean, char, string, timestamp, optional, jsonb, email, isMobilePhone } = Schema.types;
+const { integer, boolean, char, text, timestamp, optional, email, jsonb } = Schema.types;
 
 export const schema = new Schema({
   id: integer({ primaryKey: true }),
@@ -19,11 +19,11 @@ export const schema = new Schema({
   },
   list: [
     {
-      // id: integer({ sequence: true }),
+      id: integer({ sequence: 'list.$.id', comment: "自增序列", }),
       address: optional([
         {
-          // id: integer({ sequence: true }),
-          name: string({ min: 2, max: 10, }),
+          id: integer({ sequence: 'list.$.address.$.id' }),
+          name: text({ min: 2, max: 10, }),
           createdAt: timestamp({ default: 'now()' }),
           updatedAt: timestamp({ default: 'now()' }),
         }
@@ -33,7 +33,10 @@ export const schema = new Schema({
       updatedAt: timestamp({ default: 'now()' }),
     }
   ],
-  area: string({ comment: "地址" }),
+  area: text({
+    comment: "地址",
+    set(v: string) { return v; }
+  }),
   modes: {},
   // email,
   // ids: [integer({ min: 0, max: 100 })],

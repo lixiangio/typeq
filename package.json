@@ -7,13 +7,14 @@
   "module": "./main/index.js",
   "exports": {
     ".": "./main/index.js",
-    "./pgclient": "./pgclient.js",
+    "./sync": "./sync.js",
     "./types/*": "./types/*.js"
   },
-  "types": "./main/index.d.ts",
+  "types": "./**/*.d.ts",
   "devDependencies": {
+    "@typeq/pg": "file:../@typeq-pg",
+    "@types/assert": "^1.5.6",
     "jtm": "^1.1.2",
-    "pg": "^8.7.3",
     "typea": "^8.3.4"
   },
   "scripts": {
@@ -24,7 +25,10 @@
     "test": "jtm"
   },
   "files": [
-    "main/**/*.js"
+    "main/**/*.js",
+    "sync/**/*.js",
+    "types/**/*.js",
+    "validator/**/*.js"
   ],
   "author": "",
   "license": "ISC",

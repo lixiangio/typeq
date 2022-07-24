@@ -1,8 +1,8 @@
 import where from './where.js';
 import { query } from '../index.js';
 import { findQueue } from '../queue.js';
-import type { Condition, CTX, Options, Data } from '../common.js';
 import Schema from '../schema.js';
+import type { Condition, CTX, Paths, Data } from '../common.js';
 
 const directions = { 'desc': "DESC", 'asc': "ASC" };
 
@@ -32,12 +32,12 @@ export type FindPromise<T = Data[]> = Promise<T> & Partial<{
    count: (isNewQueue?: boolean) => FindPromise<T>
 }>;
 
-export default function <T>(schema: Schema, options: Options, result: (ctx: CTX) => any): FindPromise<T> {
+export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => any): FindPromise<T> {
 
    const ORDER = [], GROUP = [];
 
    const ctx = {
-      options,
+      paths,
       schema,
       SELECT: [],
       WHERE: [],
@@ -154,7 +154,7 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
       },
       /**
        * 获取数据总数，复制当前实例上下文并创建新的查询
-       * @param isNewQueue 是否创建新 Promise 实例
+       * @param isNewQueue 是否创建新实例
        */
       count(isNewQueue = false) {
 
@@ -162,20 +162,17 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
 
          if (isNewQueue) {
 
-            return Promise.resolve().then(() => {
-               for (const item of findQueue) {
-                  item(ctx);
-               }
-               const { error } = ctx;
-               if (error) {
-                  return { error };
-               } else {
-                  return query({
-                     ...ctx,
-                     SELECT
-                  }).then(ctx => ctx.body.rows[0]);
-               }
-            });
+            const _ctx = { ...ctx, SELECT };
+
+            for (const item of findQueue) { item(_ctx); }
+
+            const { error } = _ctx;
+
+            if (error) {
+               return { error };
+            } else {
+               return query(_ctx).then(_ctx => _ctx.body.rows[0]);
+            }
 
          } else {
 
@@ -192,9 +189,7 @@ export default function <T>(schema: Schema, options: Options, result: (ctx: CTX)
    };
 
    const promise = Promise.resolve().then(() => {
-      for (const item of findQueue) {
-         item(ctx);
-      }
+      for (const item of findQueue) { item(ctx); }
       const { error } = ctx;
       if (error) {
          return { error };

@@ -5,20 +5,20 @@ export const methodKey = Symbol("methodKey");
 export interface Data { [index: string]: any }
 
 /**
- * 模型实例选项
+ * 实体表路径选项
  */
-export interface Options {
-  /** 实体表名称 */
-  table?: string
+export interface Paths {
   /** 客户端名称 */
   client?: string | 'default'
   /** PG Schema 名称 */
   schema?: string | 'public'
+  /** 实体表名称 */
+  table?: string
 }
 
 /** 查询上下文 */
 export interface CTX {
-  options: Options
+  paths: Paths
   schema?: Schema
   /** where 逻辑条件集合 */
   WHERE?: string[]

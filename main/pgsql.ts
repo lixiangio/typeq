@@ -1,10 +1,9 @@
 import Queue from './queue.js';
+import type { CTX } from './common.js';
 
 export default function (queue: typeof Queue) {
 
-  queue.insert(ctx => {
-
-    const { schema, table } = ctx.options;
+  queue.insert((ctx: CTX) => {
 
     const KEYS = ctx.KEYS.join(',');
 
@@ -20,13 +19,13 @@ export default function (queue: typeof Queue) {
 
     const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
+    const { schema, table } = ctx.paths;
+
     ctx.SQL = `INSERT INTO "${schema}"."${table}" (${KEYS}) VALUES ${VALUES}${ON}${RETURNING}`;
 
   })
 
-  queue.find(ctx => {
-
-    const { schema, table } = ctx.options;
+  queue.find((ctx: CTX) => {
 
     const SELECT = ctx.SELECT.length ? ctx.SELECT.join(', ') : '*';
 
@@ -40,11 +39,13 @@ export default function (queue: typeof Queue) {
 
     const LIMIT = ctx.LIMIT ? ` LIMIT ${Number(ctx.LIMIT)}` : '';
 
+    const { schema, table } = ctx.paths;
+
     ctx.SQL = `SELECT ${SELECT} FROM "${schema}"."${table}"${WHERE}${GROUP}${ORDER}${OFFSET}${LIMIT}`;
 
   })
 
-  queue.update(ctx => {
+  queue.update((ctx: CTX) => {
 
     ctx.SET.push(`"updatedAt" = now()`);
 
@@ -54,19 +55,19 @@ export default function (queue: typeof Queue) {
 
     const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
-    const { schema, table } = ctx.options;
+    const { schema, table } = ctx.paths;
 
     ctx.SQL = `UPDATE "${schema}"."${table}" SET ${SET}${WHERE}${RETURNING}`;
 
   })
 
-  queue.delete(ctx => {
+  queue.delete((ctx: CTX) => {
 
     const WHERE = ctx.WHERE.length ? ` WHERE ${ctx.WHERE.join('')}` : '';
 
     const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
-    const { schema, table } = ctx.options;
+    const { schema, table } = ctx.paths;
 
     ctx.SQL = `DELETE FROM "${schema}"."${table}"${WHERE}${RETURNING}`;
 

@@ -1,14 +1,6 @@
-import { jsonToSql } from '../safety.js';
+import { outputs as _outputs } from './common.js';
 import { methodKey, type CTX, type Return } from '../common.js';
-import { _outputs } from './common.js';
 import type { Method, TypeOptions, Outputs } from './common.js';
-
-export interface StructFunction extends Function {
-  /** 类型名称 */
-  name: string
-  /** 类型方法 */
-  [methodKey]?: Method
-}
 
 const { toString } = Object.prototype;
 
@@ -173,53 +165,35 @@ export interface StructObject {
 
 /**
  * 创建 JSON 数组、对象结构类型函数
+ * @param name 类型名称 
+ * @param methods 类型验证方法集合
+ * @param outputs 后置输出函数集合
  */
-export default function Struct(name: string, methods: StructMethods, outputs: Outputs = _outputs): StructFunction {
+export default function createStruct(name: string, struct: object | any[], options: TypeOptions, methods: StructMethods, outputs: Outputs = _outputs): StructObject {
 
-  const { type: typeMethod } = methods;
+  if (struct === undefined) throw new Error(`struct 参数不能为空`);
 
-  function type(struct: object | any[], options?: TypeOptions): StructObject {
+  return {
+    name,
+    struct,
+    outputs,
+    options,
+    /**
+     * 数据处理函数
+     * @param entity 实体数据
+     * @param paths 字段路径
+     */
+    [methodKey](entity, paths: string[]) {
 
-    if (struct === undefined) throw new Error(`struct 参数不能为空`);
+      const { error } = methods.type(entity);
 
-    return {
-      name,
-      struct,
-      outputs,
-      options,
-      /**
-       * 数据处理函数
-       * @param entity 实体数据
-       * @param paths 字段路径
-       */
-      [methodKey](entity, paths: string[]) {
-
-        const result = typeMethod(entity); // 基础类型校验
-
-        if (result.error) {
-          return result;
-        } else {
-          return jsonConverter(struct, entity, paths);
-        }
-
-      }
-    };
-
-  }
-
-  Object.defineProperty(type, 'name', { value: name });
-
-  Object.defineProperty(type, methodKey, {
-    value(value: any) {
-      const { error } = typeMethod(value);
       if (error) {
         return { error };
       } else {
-        return { value: jsonToSql(value) };
+        return jsonConverter(struct, entity, paths);
       }
-    }
-  });
 
-  return type;
+    }
+  };
 
 }

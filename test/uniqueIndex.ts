@@ -9,6 +9,8 @@
 
 //   const result = await admin.insert({ email: `${random}abs@xx.cc` })
 
-//   t.ok(!result.error, result.error);
+//   console.log(result)
+
+//   // t.ok(!result.error, result.error);
 
 // });

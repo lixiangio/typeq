@@ -1,118 +1,13 @@
-import Type from './createType.js';
-import isISO8601 from '../../validator/isISO8601.js';
-import { json, jsonb, object, array, optional } from './json.js';
+import createType, { baseMethods } from './createType.js';
+import { json, jsonb, object, array } from './json.js';
+import { varchar, char, text, uuid } from './string.js';
+import { integer, bigint, float4, float8, money } from './number.js';
+import { date, timestamp } from './date.js';
+import { methodKey } from '../common.js';
+import { outputs, type TypeOptions, type Method } from './common.js';
+import { type StructObject } from './createStruct.js';
 
-const { baseMethods } = Type;
-
-const IntegerMethods = {
-  /** JSON 中的自增序列 */
-  sequence(value: number, isSequence: boolean, [schema, table, field]: string[]) {
-    if (isSequence === true && value === undefined) {
-      return { value: `' || nextval('${schema}.${table}.${field}') || '` };
-    }
-    return { value, next: true };
-  },
-  ...baseMethods,
-  type(value: number) {
-    if (Number.isInteger(value)) {
-      return { value, next: true };
-    } else {
-      return { error: ` 值必须为 integer 类型，实际赋值为 '${value}'` };
-    }
-  },
-  /**限制最小值 */
-  min(value: number, min: number) {
-    if (value < min) {
-      return { error: `值不能小于 "${min}" 个字符` };
-    } else {
-      return { value, next: true }
-    }
-  },
-  /** 限制最大值 */
-  max(value: number, max: number) {
-    if (value > max) {
-      return { error: `值不能大于 "${max}" 个字符` };
-    } else {
-      return { value, next: true }
-    }
-  },
-};
-
-const integer = Type('integer', IntegerMethods);
-const bigint = Type('bigint', IntegerMethods);
-
-const float = Type('float', {
-  ...baseMethods,
-  type(value: number) {
-    if (isNaN(value) === false && parseFloat(String(value)) !== NaN) {
-      return { value, next: true };
-    } else {
-      return { error: ` 值必须为 float 类型，实际赋值为 '${value}'` };
-    }
-  }
-})
-
-const StringMethods = {
-  ...baseMethods,
-  type(value: string) {
-    if (typeof value === 'string') {
-      // SQL 单引号转义
-      return { value: value.replace(/'/g, "''"), next: true };
-    } else {
-      return { error: ` 值必须为 string 类型，实际赋值为 '${value}'` };
-    }
-  },
-  /**限制最小长度 */
-  min(value: string, min: number) {
-    if (value.length < min) {
-      return { error: `值长度不能小于 "${min}" 个字符` };
-    } else {
-      return { value, next: true }
-    }
-  },
-  /** 限制最大长度 */
-  max(value: string, max: number) {
-    if (value.length > max) {
-      return { error: `值长度不能大于 "${max}" 个字符` };
-    } else {
-      return { value, next: true }
-    }
-  },
-  /** 正则 */
-  reg(value: string, reg: RegExp) {
-    if (value.search(reg) === -1) {
-      return { error: '正则表达式匹配失败' };
-    } else {
-      return { value, next: true };
-    }
-  }
-};
-
-const StringOutputs = {
-  /** 返回至 SQL */
-  sql(value: string) {
-    if (value === undefined) {
-      return { value: "DEFAULT" };
-    } else {
-      return { value: `'${value}'` };
-    }
-  },
-  /** 返回至 JSON */
-  json(value: string) {
-    if (value === undefined) {
-      return { value: null };
-    } else {
-      // 在将 JSON 字符串插入至 SQL 之前，需要对 JSON 中的双引号、换行、回车等特殊字符进行转义，为合法的 JSON 字符串值
-      // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String#parameters_3
-      return { value: JSON.stringify(value) };
-    }
-  }
-}
-
-const char = Type('char', StringMethods, StringOutputs);
-const varchar = Type('varchar', StringMethods, StringOutputs);
-
-const boolean = Type('boolean', {
+const booleanMethods = {
   ...baseMethods,
   type(value: boolean) {
     if (typeof value === 'boolean') {
@@ -121,49 +16,24 @@ const boolean = Type('boolean', {
       return { error: ` 值必须为 boolean 类型，实际赋值为 '${value}'` };
     }
   }
-});
-
-const DateOutputs = {
-  /** 返回至 SQL */
-  sql(value: string) {
-    return { value: `'${value}'` };
-  },
-  /** 返回至 JSON */
-  json(value: string) {
-    return { value: `"${value}"` };
-  }
 }
 
-const date = Type('date', {
-  ...baseMethods,
-  type(value: Date) {
-    const date = Date.parse(String(value));
-    if (isNaN(date) === false) {
-      return { value, next: true };
-    } else {
-      return { error: ` 值必须为 date 类型，实际赋值为 '${value}'` };
-    }
-  }
-}, DateOutputs);
+interface booleanOptions {
+  default?: boolean
+  comment?: string,
+  optional?: boolean
+}
 
-const timestamp = Type('timestamp', {
-  ...baseMethods,
-  type(entity: Date) {
-    // if (entity instanceof Date) {
-    //   return { value: `'${entity.toISOString()}'`, next: true };
-    // } 
-    const value = String(entity);
-    if (isISO8601(value)) {
-      return { value, next: true };
-    } else {
-      return { error: ` 值必须为 timestamp 类型，实际赋值为 '${value}'` };
-    }
-  }
-}, DateOutputs);
+/** 布尔类型 */
+function boolean(options: booleanOptions) { return createType<booleanOptions>('boolean', options, booleanMethods, outputs); }
 
-const range = Type('range', {
+Object.defineProperty(boolean, 'outputs', { value: outputs });
+Object.defineProperty(boolean, methodKey, { value: booleanMethods.type });
+
+
+const rangeMethods = {
   ...baseMethods,
-  type(value: number[]) {
+  type(value: [number, number]) {
     if (Array.isArray(value)) {
       if (value.length == 2) {
         const [a, b] = value;
@@ -179,35 +49,135 @@ const range = Type('range', {
       return { error: ` 值必须为 range 类型，实际赋值为 '${value}'` };
     }
   }
-});
+}
+
+interface rangeOptions {
+  default?: [number, number]
+  comment?: string,
+  optional?: boolean
+}
+
+/** 范围匹配 */
+function range(options: rangeOptions) { return createType<rangeOptions>('range', options, rangeMethods, outputs); }
+
+Object.defineProperty(range, 'outputs', { value: outputs });
+Object.defineProperty(range, methodKey, { value: rangeMethods.type });
+
 
 /** integer 数组 */
-const integers = Type('integer[]', {
+
+const integersMethods = {
   ...baseMethods,
-  type(value: number[]) {
+  type(value: [number, number]) {
     if (Array.isArray(value)) {
-      for (const item of value) {
-        if (Number.isInteger(item) === false) {
-          return { error: `数组内成员必须为 integer 类型` };
+      if (value.length == 2) {
+        const [a, b] = value;
+        if (typeof a === 'number' && typeof b === 'number') {
+          return { value: `'[${b}, ${b}]'`, next: true };
+        } else {
+          return { error: `range 内成员必须为 number 类型` };
         }
+      } else {
+        return { error: `range 长度必须等于 2` };
       }
-      return { value: `{${value.join()}}`, next: true };
     } else {
-      return { error: ` 值必须为 integer[] 类型，实际赋值为 '${value}'` };
+      return { error: ` 值必须为 range 类型，实际赋值为 '${value}'` };
     }
   }
-});
+}
+
+interface integersOptions {
+  default?: number[]
+  comment?: string,
+  optional?: boolean
+}
+
+/** integer 数组 */
+function integers(options: integersOptions) { return createType<integersOptions>('integer[]', options, integersMethods, outputs); }
+
+Object.defineProperty(integers, 'name', { value: 'integer[]' });
+Object.defineProperty(integers, 'outputs', { value: outputs });
+Object.defineProperty(integers, methodKey, { value: integersMethods.type });
+
+
+export interface StructFunction {
+  (struct: object | any[], options?: TypeOptions): StructObject
+  /** 类型名称 */
+  name: string
+  /** 类型方法 */
+  [methodKey]?: Method
+}
+
+/**
+ * 可选类型辅助函数
+ * @param node 类型节点
+ */
+export function optional(node: StructFunction | StructObject | object | any[]) {
+
+  const method: Function = node[methodKey];
+
+  if (Array.isArray(node)) {
+
+    return array(node, { optional: true });
+
+  } else if (toString.call(node) === '[object Object]') {
+
+    return object(node, { optional: true });
+
+  } else if (method) {
+
+    // type 为类型对象
+    if (typeof node === 'object') {
+
+      const { name, options } = node as StructObject;
+
+      return {
+        name,
+        options: {
+          ...options,
+          optional: true
+        },
+        [methodKey]: method
+      };
+
+    }
+
+    // type 为类型函数
+    else if (typeof node === 'function') {
+
+      const { name } = node as StructFunction;
+
+      return {
+        name,
+        options: { optional: true },
+        [methodKey]: method
+      };
+
+    }
+
+  } else {
+
+    throw new Error('optional() 可选类型函数参数无效');
+
+  }
+
+}
+
 
 const types = {
   integer,
+  int: integer,
   bigint,
-  float,
-  number: float,
+  float4,
+  float8,
+  number: float8,
+  money,
   char,
   varchar,
-  string: varchar,
-  text: varchar,
+  text,
+  string: text,
   boolean,
+  bool: boolean,
   date,
   timestamp,
   range,
@@ -216,9 +186,10 @@ const types = {
   jsonb,
   object,
   array,
+  uuid,
   optional
 }
 
-export type Types = (typeof types) & { [name: string]: Function }
+export type Types = (typeof types) & { [index: string]: (...param: unknown[]) => unknown }
 
 export default types;

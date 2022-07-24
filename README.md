@@ -1,16 +1,18 @@
 # typeq
 
-适用于 Postgresql 和 CockroachDB 数据库的简单、轻量级 ORM。
+适用于 Postgresql、CockroachDB、Materialize 数据库的简单、轻量级 ORM。
 
 ## 特性
 
-- 采用数据模型与数据库连接池分离设计，支持嵌入或独立部署两种方案可选。
+- 采用数据模型与数据库连接池分离设计，支持集成部署或独立部署两种可选方案。
 
-- 在拆分部署模式下，可改善 Serverless 环境下的冷启动速度，并提高数据库连接池的复用率；
+- 在独立部署模式下，可改善 Serverless 环境下的冷启动速度，并提高数据库连接池的复用率；
 
 - 为多租户、多数据库、分布式场景提供更灵活的模型切换与复用支持；
 
-- 支持为 JSON 类型字段建模，提供 JSON 数据结构、类型的深层校验功能；
+- 使用简洁、直观、可嵌套的数据模型，通过类型函数声明，确保字段命名安全、无冲突；
+
+- 支持为 JSON、JSONB 类型字段建模，提供 JSON 数据结构与类型的深层校验；
 
 - 支持为 JSONB 类型自动创建独立的自增序列，为嵌套数据查询提供唯一索引；
 
@@ -18,7 +20,7 @@
 
 - 支持扩展自定义运算符函数、自定义数据类型验证器；
 
-- 支持可扩展的查询任务流，可实现 SQL 请求时拦截、转发、改写等定制化功能；
+- 支持可扩展的查询任务流，可实现 SQL 请求拦截、转发、改写等定制化需求；
 
 - 支持 Schema、表结构同步，将数据模型中表结构、索引等信息同步至表实体；
 
@@ -33,25 +35,12 @@ npm install typeq
 ## Example
 
 ```ts
-import { Schema, Model, queue, operator } from "typepg";
-import pgclient from "typepg/pgclient";
-
-const client = pgclient({
-  default: {
-    host: "localhost",
-    database: "demo",
-    user: "postgres",
-    password: "******",
-    port: 5432,
-  },
-});
-
-queue.use(client); // 将数据库客户端实例添加至查询队列
+import { Clients, Schema, Model, queue, operator } from "typepg";
+import pgclient from "@typeq/pg";
 
 const { integer, string, boolean, email, jsonb } = Schema.types;
 
 /** 定义表结构模型 */
-
 const schema = new Schema({
   id: integer({ primaryKey: true }),
   uid: integer,
@@ -62,11 +51,11 @@ const schema = new Schema({
   },
   list: [
     {
-      id: integer({ sequence: true }),
+      id: integer({ sequence: "list.$.id" }),
       state: boolean,
       address: [
         {
-          id: integer({ sequence: true }),
+          id: integer({ sequence: "list.$.address.$.id" }),
           name: string,
           createdAt: timestamp({ default: "now()" }),
           updatedAt: timestamp({ default: "now()" }),
@@ -90,19 +79,36 @@ const schema = new Schema({
 
 const tasks = new Model("tasks", schema);
 
+/** 连接数据库 */
+const clients = new Clients(pgclient, {
+  default: {
+    host: "localhost",
+    database: "demo",
+    user: "postgres",
+    password: "******",
+    port: 5432,
+  },
+});
+
 const { $as, $in } = operator; // 查询操作符
 
-/** 基于数据模型的结构化查询 */
-const list = await tasks
+/** 插入数据 */
+const [item] = await tasks(options).insert(data).return("id");
+
+/** 查询查询 */
+const result = await tasks
   .select("id", "email", "keywords", $as("uid", "tid"))
   .where({ id: $in(50, 51) })
   .and({ keywords: {} })
   .or({ id: 5 })
-  .order({
-    id: "desc",
-    uid: "desc",
-  })
-  .limit(10);
+  .order({ uid: "desc" })
+  .limit(20);
+
+/** 更新数据 */
+const result = await tasks.update({ id: 1 }).set(data).return("id");
+
+/** 删除数据 */
+const result = await tasks.delete({ id: 1 });
 ```
 
 <!--
@@ -136,12 +142,14 @@ queue.use(client);
 ## 添加模型
 
 ```ts
-const model = new Model(name: string, model: object);
+const schema = new Schema({ [field: name]: Type });
+
+const model = new Model(name: string, schema: Schema);
 ```
 
-- name string - 模型名称
--
-- model object - 模型实例
+- name - 表名称
+
+- schema - 模式实例
 
 ## 模型同步
 
@@ -178,12 +186,6 @@ client().sync("public.user", "rebuild");
 
 // 使用批量增量模式，批量同步 public.admin 下所有的表
 client().syncAll("public.admin", "rebuild");
-```
-
-### 批量同步指定 public 中的所有模型
-
-```js
-client().syncAll("public", "increment");
 ```
 
 ## 函数链
@@ -259,7 +261,7 @@ client().syncAll("public", "increment");
 - condition - and 条件集合
 
 ```js
-model.where(condition, ...).or(condition, ...).and(condition, ...);
+model.where(condition, condition, ...).or(condition, condition, ...).and(condition, condition, ...);
 ```
 
 ### return 函数链

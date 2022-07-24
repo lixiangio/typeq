@@ -6,7 +6,7 @@ const { union } = Utility;
 const { $as } = operator;
 const { tasks } = models;
 
-const options = {
+const paths = {
   client: "default",
   schema: 'public',
   table: 'tasks',
@@ -15,7 +15,7 @@ const options = {
 
 test('select', async t => {
 
-  const result = await tasks(options)
+  const result = await tasks(paths)
     .select('id', 'keywords', 'list', $as("area", "xx"), 'createdAt')
     .offset(1)
     .limit(3);
@@ -36,7 +36,7 @@ test('select', async t => {
 
 test('_return', async t => {
 
-  const result = await tasks(options)
+  const result = await tasks(paths)
     .find({ "uid": 6 })
     .limit(2)
     .order({

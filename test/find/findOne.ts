@@ -18,7 +18,7 @@ const schema = new Schema({
 test('findOne', async t => {
 
    const result = await tasks
-      .findOne({ id: 1, })
+      .findOne({ id: 1 })
       .order({
          "id": "desc",
          "keywords": "desc"

@@ -1,101 +1,108 @@
+import { jsonToSql } from '../safety.js';
 import { methodKey } from '../common.js';
-import Struct, { type StructFunction, type StructObject } from './createStruct.js';
+import { outputs, type TypeOptions } from './common.js';
+import createStruct from './createStruct.js';
 
-export const json = Struct('json', {
-  type(value: object) {
+
+const jsonMethods = {
+  type(value: object | any[]) {
     if (typeof value === 'object') {
-      return { value, next: true };
+      return { value };
     } else {
       return { error: ` 值必须为 json 类型，实际赋值为 '${value}'` };
     }
   }
-});
+}
 
-export const jsonb = Struct('jsonb', {
-  type(value: object) {
-    if (typeof value === 'object') {
-      return { value, next: true };
+/** JSON 类型 */
+export function json(struct: object, options?: TypeOptions) {
+
+  return createStruct('json', struct, options, jsonMethods, outputs);
+
+}
+
+const methodType = {
+  value(value: any) {
+    const { error } = jsonMethods.type(value);
+    if (error) {
+      return { error };
     } else {
-      return { error: ` 值必须为 jsonb 类型，实际赋值为 '${value}'` };
+      return { value: jsonToSql(value) };
     }
   }
-});
+}
+
+Object.defineProperty(json, methodKey, methodType);
+
+
+
+/** JSONB 类型 */
+export function jsonb(struct: object, options?: TypeOptions) {
+
+  return createStruct('jsonb', struct, options, jsonMethods, outputs);
+
+}
+
+Object.defineProperty(jsonb, methodKey, methodType);
+
 
 const { toString } = Object.prototype;
 
-/** 值为严格对象类型 */
-export const object = Struct("jsonb", {
+const objectMethods = {
   type(value: object) {
     if (toString.call(value) === '[object Object]') {
-      return { value, next: true };
+      return { value };
     } else {
       return { error: ` 值必须为 object 类型，实际赋值为 '${value}'` };
     }
   }
+}
+
+/** JSON 严格对象类型 */
+export function object(struct: object, options?: TypeOptions) {
+
+  return createStruct('jsonb', struct, options, objectMethods, outputs);
+
+}
+
+Object.defineProperty(object, 'name', { value: 'jsonb' });
+Object.defineProperty(object, methodKey, {
+  value(value: object) {
+    const { error } = objectMethods.type(value);
+    if (error) {
+      return { error };
+    } else {
+      return { value: jsonToSql(value) };
+    }
+  }
 });
 
-/** 值为 array 类型 */
-export const array = Struct('jsonb', {
-  type(value: unknown[]) {
+
+const arrayMethods = {
+  type(value: any[]) {
     if (Array.isArray(value)) {
-      return { value, next: true };
+      return { value };
     } else {
       return { error: ` 值必须为 array 类型，实际赋值为 '${value}'` };
     }
   }
-});
+}
 
-/**
- * 可选类型辅助函数
- * @param type 类型节点
- */
-export function optional(type: StructFunction | StructObject | object | any[]) {
+/** JSON 数组类型 */
+export function array(struct: any[], options?: TypeOptions) {
 
-  const method: Function = type[methodKey];
-
-  if (Array.isArray(type)) {
-
-    return array(type, { optional: true });
-
-  } else if (toString.call(type) === '[object Object]') {
-
-    return object(type, { optional: true });
-
-  } else if (method) {
-
-    // type 为类型实例对象
-    if (typeof type === 'object') {
-
-      const { name, options } = type as StructObject;
-
-      return {
-        name,
-        options: {
-          ...options,
-          optional: true
-        },
-        [methodKey]: method
-      };
-
-    }
-
-    // type 为静态类型函数
-    else if (typeof type === 'function') {
-
-      const { name } = type as StructFunction;
-
-      return {
-        name,
-        options: { optional: true },
-        [methodKey]: method
-      };
-
-    }
-
-  } else {
-
-    throw new Error('optional() 可选类型函数参数无效');
-
-  }
+  return createStruct('jsonb', struct, options, arrayMethods, outputs);
 
 }
+
+Object.defineProperty(array, 'name', { value: 'jsonb' });
+Object.defineProperty(array, methodKey, {
+  value(value: any[]) {
+    const { error } = arrayMethods.type(value);
+    if (error) {
+      return { error };
+    } else {
+      return { value: jsonToSql(value) };
+    }
+  }
+});

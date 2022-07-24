@@ -14,27 +14,28 @@ interface Field {
   struct?: object | any[]
   /** 可选字段 */
   optional?: boolean
+  /** 唯一索引 */
+  uniqueIndex?: boolean
   [methodKey]?: Function
 }
 
 /** 实体表字段集合 */
 interface Fields { [name: string]: Field }
 
-// interface Keys {
-//   [name: string]: string
-// }
-
 interface Struct { [index: string]: any }
 
 const { integer, timestamp, array, object } = types;
 
-const { hasOwnProperty } = Object.prototype;
+const { hasOwnProperty, toString } = Object.prototype;
 
 export default class Schema {
   static types: Types = types
-  primaryKey: string // 主键名称
+  struct: Struct
   fields: Fields = {}
+  primaryKey: string // 主键名称
   constructor(struct: Struct) {
+
+    this.struct = struct;
 
     const { fields } = this;
 
@@ -119,7 +120,7 @@ export default class Schema {
           const methond = array(node)[methodKey];
 
           fields[name] = {
-            type: 'array',
+            type: 'jsonb',
             struct: node,
             default: "'[]'::jsonb",
             [methodKey](entity: unknown[], paths: string[]) {
@@ -140,7 +141,7 @@ export default class Schema {
           const methond = object(node)[methodKey];
 
           fields[name] = {
-            type: 'object',
+            type: 'jsonb',
             struct: node,
             default: "'{}'::jsonb",
             [methodKey](entity: object, paths: string[]) {
@@ -152,7 +153,7 @@ export default class Schema {
               }
             }
           };
-
+          
         } else {
 
           throw new Error(`${name} 字段声明无效`);
@@ -167,7 +168,7 @@ export default class Schema {
 
     }
 
-    // 无主键时，将 id 字段设为默认主键
+    // 无主键，默认将 id 字段设为主键
     if (this.primaryKey === undefined) {
 
       this.primaryKey = 'id';
@@ -202,4 +203,5 @@ export default class Schema {
     }
 
   }
+
 }

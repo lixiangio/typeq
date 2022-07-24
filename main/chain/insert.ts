@@ -2,7 +2,7 @@ import Schema from '../schema.js';
 import { query } from '../index.js';
 import { methodKey } from '../common.js';
 import { insertQueue } from '../queue.js';
-import type { CTX, Options } from '../common.js';
+import type { CTX, Paths } from '../common.js';
 
 const { hasOwnProperty } = Object.prototype;
 
@@ -26,14 +26,14 @@ interface Chain {
 
 export type InsertPromise = Promise<{ [index: string]: any }[]> & Partial<Chain>
 
-export default function (schema: Schema, options: Options, list: object[], result: (ctx: CTX) => any): InsertPromise {
+export default function (schema: Schema, paths: Paths, list: object[], result: (ctx: CTX) => any): InsertPromise {
 
    const KEYS = [], VALUES = [];
 
    const { primaryKey, fields } = schema;
 
    const ctx = {
-      options,
+      paths,
       schema,
       KEYS,
       VALUES,
@@ -43,7 +43,7 @@ export default function (schema: Schema, options: Options, list: object[], resul
       error: undefined
    };
 
-   const { schema: schemaName, table } = options;
+   const { schema: schemaName, table } = paths;
 
    for (const index in list) {
       VALUES[index] = [];
@@ -164,9 +164,7 @@ export default function (schema: Schema, options: Options, list: object[], resul
    };
 
    const promise: Promise<any> = Promise.resolve().then(() => {
-      for (const item of insertQueue) {
-         item(ctx);
-      }
+      for (const item of insertQueue) { item(ctx); }
       const { error } = ctx;
       if (error) {
          return { error };

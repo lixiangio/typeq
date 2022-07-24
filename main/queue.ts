@@ -2,12 +2,10 @@ import type { Middleware } from './common.js';
 
 /** 查询任务队列 */
 export const beforeQueue = []; // 前置队列
-
 export const insertQueue = [];
 export const findQueue = [];
 export const updateQueue = [];
 export const deleteQueue = [];
-
 export const afterQueue = [];  // 后置队列
 
 /**注册队列 */
@@ -27,7 +25,6 @@ export default {
   /** 添加插件 */
   use(func: Function) { func(this); }
 }
-
 
 /** 前置、后置队列预处理，合并操作 */
 Promise.resolve().then(() => {

@@ -15,7 +15,7 @@ const schema = new Schema([
   })
 ]);
 
-test('where.or.and', async t => {
+test('where.and.or', async t => {
 
   const result = await tasks
     .select('id', 'keywords', $as("state", "xx"))

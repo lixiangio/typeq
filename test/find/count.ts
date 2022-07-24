@@ -12,7 +12,7 @@ test('find & count', async t => {
 
    const [list, count] = await Promise.all([findPromise, countPromise]);
 
-   console.log(count)
+   t.deepEqual(count, { count: 1 });
 
    const schema = new Schema([
       {
@@ -33,8 +33,6 @@ test('find & count', async t => {
    const { value, error } = schema.verify(list);
 
    t.ok(value, error);
-
-   t.deepEqual(count, { count: 1 });
 
 })
 

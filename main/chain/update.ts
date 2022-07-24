@@ -3,7 +3,7 @@ import { query } from '../index.js';
 import where from './where.js';
 import { methodKey } from '../common.js';
 import { updateQueue } from '../queue.js';
-import type { Options, CTX, Condition } from '../common.js';
+import type { Paths, Condition, CTX } from '../common.js';
 
 const { toString } = Object.prototype;
 
@@ -40,13 +40,13 @@ interface Chain {
 
 export type UpdatePromise = Promise<any> & Partial<Chain>
 
-export default function (schema: Schema, options: Options, result: (ctx: CTX) => any): UpdatePromise {
+export default function (schema: Schema, paths: Paths, result: (ctx: CTX) => any): UpdatePromise {
 
   const SET = [];
 
   const ctx = {
     schema,
-    options,
+    paths,
     SET,
     WHERE: [],
     RETURNING: [],
@@ -55,7 +55,7 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
   };
 
   const { fields } = schema;
-  const { schema: schemaName, table } = options;
+  const { schema: schemaName, table } = paths;
 
   const chain: Chain = {
     ctx,
@@ -110,11 +110,11 @@ export default function (schema: Schema, options: Options, result: (ctx: CTX) =>
 
       const RETURNING = [];
 
-      for (const key of names) {
-        if (fields[key]) {
-          RETURNING.push(`"${key}"`);
+      for (const name of names) {
+        if (fields[name]) {
+          RETURNING.push(`"${name}"`);
         } else {
-          throw ctx.error = new Error(`${key} 字段不存在`);
+          throw ctx.error = new Error(`${name} 字段不存在`);
         }
       }
 

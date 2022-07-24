@@ -1,1 +1,0 @@
-select * from ('[{"a":"foo", "b":"bar"}]'::JSON)

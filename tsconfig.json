@@ -12,7 +12,10 @@
         "./main/index"
       ],
       "typeq/pgclient": [
-        "./pgclient.js"
+        "./pgclient"
+      ],
+      "typeq/sync": [
+        "./sync"
       ],
       "typeq/types/*": [
         "./types/*"

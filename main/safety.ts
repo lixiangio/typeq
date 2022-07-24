@@ -1,7 +1,6 @@
 /**
  * 表字段级安全过滤器
  */
-
  export const valueReg = /'/g;
 
 /**

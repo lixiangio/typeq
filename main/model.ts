@@ -3,12 +3,12 @@ import insertChain, { type InsertPromise } from './chain/insert.js';
 import findChain, { type FindPromise } from './chain/find.js';
 import updateChain, { type UpdatePromise } from './chain/update.js';
 import deleteChain, { type DeletePromise } from './chain/delete.js';
-import type { Options, Data, CTX } from './common.js';
+import type { Paths, Data, CTX } from './common.js';
 
 /** 模型实例 */
 export interface Model {
   schema: Schema
-  options: Options
+  paths: Paths
   /**
    * 插入单条数据
    * @param entity 插入单条时输入对象，返回对象，插入多条输入数组
@@ -60,17 +60,20 @@ export interface Model {
 export interface ModelFn extends Model {
   /**
    * 查询函数链，默认初始化，可静态调用，或实例传参调用
-   * @param mixing 配置混合选项
+   * @param paths 表路径选项，用于覆盖默认路径 
+   *  ```json
+   *  { client: 'default', schema: 'public' }
+   *  ```
    */
-  (mixing?: Options): Model
-}
-
-interface ModelClass {
-  new(table: string, schema: Schema): ModelFn
+  (paths?: Paths): Model
 }
 
 /** 模型实例集合，供外部引用 */
 export const models: { [name: string]: ModelFn } = {};
+
+interface ModelClass {
+  new(table: string, schema: Schema): ModelFn
+}
 
 /**
  * 模型构造函数
@@ -80,26 +83,29 @@ export const models: { [name: string]: ModelFn } = {};
 // @ts-ignore
 const Model: ModelClass = class {
   schema: Schema
-  options = { client: 'default', schema: 'public', table: undefined }
+  paths: Paths = { client: 'default', schema: 'public', table: undefined }
+  /**
+   * 
+   * @param table 表名
+   * @param schema schema 实例，表结构信息
+   */
   constructor(table: string, schema: Schema) {
 
     this.schema = schema;
-    this.options.table = table;
+    this.paths.table = table;
 
-    const { insert, select, find, findOne, findPk, update, updatePk, delete: del, deletePk } = this;
+    const { insert, select, find, findOne, findPk, update, updatePk, delete: _delete, deletePk } = this;
 
-    const modelFn = (mixing?: Options): Model => {
+    const modelFn = (paths?: Paths): Model => {
 
-      const options = { ...this.options, ...mixing };
-
-      return { schema, options, insert, select, find, findOne, findPk, update, updatePk, delete: del, deletePk };
+      return { schema, paths: { ...this.paths, ...paths }, insert, select, find, findOne, findPk, update, updatePk, delete: _delete, deletePk };
 
     };
 
     Object.defineProperty(modelFn, "name", { value: table });
 
     modelFn.schema = schema;
-    modelFn.options = this.options;
+    modelFn.paths = this.paths;
 
     modelFn.insert = insert;
     modelFn.select = select;
@@ -108,7 +114,7 @@ const Model: ModelClass = class {
     modelFn.findPk = findPk;
     modelFn.update = update;
     modelFn.updatePk = updatePk;
-    modelFn.delete = del;
+    modelFn.delete = _delete;
     modelFn.deletePk = deletePk;
 
     models[table] = modelFn;
@@ -118,7 +124,7 @@ const Model: ModelClass = class {
   }
   insert(...entity: object[]) {
 
-    return insertChain(this.schema, this.options, entity, ctx => {
+    return insertChain(this.schema, this.paths, entity, ctx => {
       const { rows } = ctx.body;
       return rows;
     });
@@ -126,9 +132,9 @@ const Model: ModelClass = class {
   }
   select(...fields: (string | (() => string))[]) {
 
-    const { schema, options } = this;
+    const { schema } = this;
 
-    const chain = findChain<Data[] | null>(schema, options, ctx => ctx.body.rows);
+    const chain = findChain<Data[] | null>(schema, this.paths, ctx => ctx.body.rows);
 
     const { ctx } = chain;
     const { SELECT } = ctx;
@@ -150,7 +156,7 @@ const Model: ModelClass = class {
   }
   find(condition: object) {
 
-    const chain = findChain<Data[] | null>(this.schema, this.options, ctx => ctx.body.rows);
+    const chain = findChain<Data[] | null>(this.schema, this.paths, ctx => ctx.body.rows);
 
     if (condition) chain.where(condition);
 
@@ -159,7 +165,7 @@ const Model: ModelClass = class {
   }
   findOne(condition: object) {
 
-    const chain = findChain<Data | null>(this.schema, this.options, ctx => ctx.body.rows[0] || null);
+    const chain = findChain<Data | null>(this.schema, this.paths, ctx => ctx.body.rows[0] || null);
 
     if (condition) chain.where(condition);
 
@@ -170,9 +176,9 @@ const Model: ModelClass = class {
   }
   findPk(pid: number) {
 
-    const { schema, options } = this;
+    const { schema } = this;
 
-    const chain = findChain<Data | null>(schema, options, ctx => ctx.body.rows[0] || null);
+    const chain = findChain<Data | null>(schema, this.paths, ctx => ctx.body.rows[0] || null);
 
     chain.where({ [schema.primaryKey]: pid });
 
@@ -185,7 +191,7 @@ const Model: ModelClass = class {
   }
   update(condition: object) {
 
-    const chain = updateChain(this.schema, this.options, ctx => {
+    const chain = updateChain(this.schema, this.paths, ctx => {
       if (ctx.RETURNING.length) {
         return ctx.body.rows;
       } else {
@@ -201,9 +207,9 @@ const Model: ModelClass = class {
   }
   updatePk(pid: number) {
 
-    const { schema, options } = this;
+    const { schema } = this;
 
-    const chain = updateChain(schema, options, ctx => ctx.body.rows[0] || null);
+    const chain = updateChain(schema, this.paths, ctx => ctx.body.rows[0] || null);
 
     chain.where({ [schema.primaryKey]: pid });
 
@@ -214,7 +220,7 @@ const Model: ModelClass = class {
   }
   delete(condition: object) {
 
-    const chain = deleteChain(this.schema, this.options, ctx => {
+    const chain = deleteChain(this.schema, this.paths, ctx => {
       if (ctx.RETURNING.length) {
         return ctx.body.rows;
       } else {
@@ -230,9 +236,9 @@ const Model: ModelClass = class {
   }
   deletePk(pid: number) {
 
-    const { schema, options } = this;
+    const { schema } = this;
 
-    const chain = deleteChain(schema, options, ctx => ctx.body.rows[0] || null);
+    const chain = deleteChain(schema, this.paths, ctx => ctx.body.rows[0] || null);
 
     chain.where({ [schema.primaryKey]: pid });
 
@@ -244,7 +250,7 @@ const Model: ModelClass = class {
 }
 
 /** 阻断 query 执行 */
-export function stop(model: InsertPromise | FindPromise | UpdatePromise | DeletePromise): Promise<CTX> {
+export function stopQuery(model: InsertPromise | FindPromise | UpdatePromise | DeletePromise): Promise<CTX> {
 
   const { ctx } = model;
 

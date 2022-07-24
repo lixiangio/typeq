@@ -1,4 +1,4 @@
-import { operator, } from 'typeq';
+import { operator } from 'typeq';
 
 const { $sql } = operator;
 

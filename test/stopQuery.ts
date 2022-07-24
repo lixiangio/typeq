@@ -1,38 +1,39 @@
 import test from 'jtm';
-import { models, stop } from 'typeq';
+import { strict as t } from 'assert';
+import { models, stopQuery } from 'typeq';
 import { tasks0 } from '../data/tasks.js';
 
 const { tasks } = models;
 
-test('stop insert', async t => {
+test('stop insert', async () => {
 
   const tasksPromis = tasks
     .insert(tasks0)
     .return('id');
 
-  const { SQL } = await stop(tasksPromis);
+  const ctx = await stopQuery(tasksPromis);
 
-  t.ok(SQL);
+  t.ok(ctx.SQL);
 
 })
 
-test('stop find', async t => {
+test('stop find', async () => {
 
-  const { SQL } = await stop(tasks
+  const ctx = await stopQuery(tasks
     .select('id', 'keywords', 'list', 'createdAt')
     .offset(1)
     .limit(3));
 
-  t.ok(SQL);
+  t.ok(ctx.SQL);
 
 })
 
-test('stop update', async t => {
+test('stop update', async () => {
 
   const tasksPromis = tasks.updatePk(1);
 
-  const { SQL } = await stop(tasksPromis);
+  const ctx = await stopQuery(tasksPromis);
 
-  t.ok(SQL);
+  t.ok(ctx.SQL);
 
 })

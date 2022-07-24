@@ -1,116 +1,79 @@
-import { methodKey, } from '../common.js';
-import { _outputs } from './common.js';
-import type { Outputs, Method, TypeOptions, QueryMethods } from './common.js';
-
-export interface TypeObject {
-  /** 数据类型 */
-  name: string
-  outputs: Outputs
-  /** 输出类型方法 */
-  [methodKey]: Method
-  /** 类型选项 */
-  options: TypeOptions
-}
-
-export interface TypeFunction extends Function {
-  /** 类型名称 */
-  name: string
-  outputs?: Outputs
-  /** 类型方法 */
-  [methodKey]?: Method
-}
+import { methodKey } from '../common.js';
+import type { QueryMethods, Outputs, Method } from './common.js';
 
 const { hasOwnProperty, toString } = Object.prototype;
 
-/**
- * 创建类型函数
- * @param name 类型名称
- * @param methods 验证方法有序集合
- * @param outputs 输出类型方法集合，sql 或 json 字符串输出函数
- */
-export default function Type(name: string, methods: QueryMethods, outputs: Outputs = _outputs): TypeFunction {
+export interface Return<Options> {
+  /** 数据类型 */
+  name: string
+  outputs: Outputs
+  /** 类型选项 */
+  options: Options
+  /** 输出类型方法 */
+  [methodKey]: Method
+}
 
-  /**
-   * 类型声明方法
-   * @param options 类型选项
-   */
-  function type(options?: TypeOptions): TypeObject {
+export default function createType<Options>(name: string, options: Options, methods: QueryMethods, outputs: Outputs): Return<Options> {
 
-    if (toString.call(options) !== '[object Object]') throw new Error("类型选项必须要为对象结构");
+  if (toString.call(options) !== '[object Object]') throw new Error("选项必须要为对象结构");
 
-    options = { ...options, type: true };
+  const mixing = { ...options, type: true };
 
-    const typeQueue: { method: Function, param: any }[] = [];
+  const typeMethods: { method: Function, param: any }[] = [];
 
-    // 执行类型选项中的队列函数，上一个函数的返回值会作为下一个函数的输入参数
-    for (const name in methods) {
+  // 执行类型选项中的队列函数，上一个函数的返回值会作为下一个函数的输入参数
+  for (const index in methods) {
 
-      if (hasOwnProperty.call(options, name)) {
+    if (hasOwnProperty.call(mixing, index)) {
 
-        typeQueue.push({
-          method: methods[name], // 每个有效的 node[$name] 对应一个 methods[$name]() 处理函数
-          param: options[name]
-        });
-
-      }
+      typeMethods.push({
+        method: methods[index], // 每个有效的 options[$index] 对应一个 methods[$index]() 处理函数
+        param: mixing[index]
+      });
 
     }
 
-    const { set } = options;
-
-    return {
-      name,
-      options,
-      outputs,
-      /**
-       * 数据处理函数
-       */
-      [methodKey](entity: unknown, paths: string[]) {
-
-        // 值为赋值函数，SQL 赋值函数会跳过验证器的校验与转换步骤，直接插入 SQL 赋值，因此存在注入风险
-        if (typeof entity === 'function') return { value: entity(paths[2]) };
-
-        if (set) return { value: set(entity) };
-
-        // 执行类型选项对应的的类型函数队列，上一个函数的返回值会作为下一个函数的参数输入
-        for (const { method, param } of typeQueue) {
-
-          const { error, next, value } = method(entity, param, paths);
-
-          if (error) {
-            return { error };
-          } else if (next === true) {
-            entity = value;
-          } else {
-            return { value };
-          }
-
-        }
-        
-        return { value: entity };
-
-      }
-    };
-
   }
 
-  Object.defineProperty(type, 'name', { value: name });
-  Object.defineProperty(type, 'outputs', { value: outputs });
+  return {
+    name,
+    options,
+    outputs,
+    /** 数据处理函数 */
+    [methodKey](entity: unknown, paths: string[]) {
 
-  /** 无参数状态下，仅做类型检查 */
-  Object.defineProperty(type, methodKey, { value: methods.type });
+      // 值为赋值函数，SQL 赋值函数会跳过验证器的校验与转换步骤，直接插入 SQL 赋值，因此存在注入风险
+      if (typeof entity === 'function') return { value: entity(paths[2]) };
 
-  return type;
+      // 执行类型选项对应的的类型函数队列，上一个函数的返回值会作为下一个函数的参数输入
+      for (const { method, param } of typeMethods) {
+
+        const { error, next, value } = method(entity, param, paths);
+
+        if (error) {
+          return { error };
+        } else if (next === true) {
+          entity = value;
+        } else {
+          return { value };
+        }
+
+      }
+
+      return { value: entity };
+
+    }
+  };
 
 }
 
-Type.baseMethods = {
+export const baseMethods = {
   /** 
    * 默认值
    * @param value 实体数据
    * @param defaultValue 无参数时，默认的填充数据
    */
-  default(value: unknown, defaultValue: string) {
+  default(value: unknown, defaultValue: unknown) {
     if (value === undefined) {
       return { value: `'|| ${defaultValue} ||'` };
     } else {
@@ -125,7 +88,7 @@ Type.baseMethods = {
   optional(value: unknown, isOptional: boolean) {
     if (value === undefined) {
       if (isOptional === true) {
-        return { value };
+        return { value: undefined };
       } else {
         return { error: " value is not allowed to be empty" };
       }
@@ -134,3 +97,5 @@ Type.baseMethods = {
     }
   }
 };
+
+createType.baseMethods = baseMethods;
