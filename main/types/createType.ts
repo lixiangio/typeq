@@ -13,6 +13,14 @@ export interface Return<Options> {
   [methodKey]: Method
 }
 
+/**
+ * 创建类型
+ * @param name 类型名称
+ * @param options 
+ * @param methods 
+ * @param outputs 
+ * @returns 
+ */
 export default function createType<Options>(name: string, options: Options, methods: QueryMethods, outputs: Outputs): Return<Options> {
 
   if (toString.call(options) !== '[object Object]') throw new Error("选项必须要为对象结构");

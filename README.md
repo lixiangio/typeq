@@ -153,25 +153,15 @@ const model = new Model(name: string, schema: Schema);
 
 ## 模型同步
 
-模型与数据表之间支持三种同步模式：
-
-### 默认模式
+### 创建表
 
 > 无参数时会尝试创建新的数据表，当指定的表已存在时请求被拒绝，不做任何操作。
 
 ```js
-client().sync("public.user");
+sync(model: Model).createTable(options);
 ```
 
-### 增量模式
-
-> 在已有表上新增字段，该模式只会添加新的列，不改变已有列和数据。
-
-```js
-client().sync("user", "increment");
-```
-
-### 重置模式（危险）
+### 重置表（危险）
 
 > 删除已有的数据表重新构建表结构。
 
@@ -179,13 +169,23 @@ client().sync("user", "increment");
 
 ```js
 // 同步 schema 为public下的 user 表
-client().sync("public.user");
+sync(model: Model).rebuildTable("public.user");
 
-// 使用重构模式，删除并重建 user 表（未指定 schema，默认为 public）
-client().sync("public.user", "rebuild");
+// 使用重构模式，删除并重建 user 表（未指定 schema 时，默认为 public）
+sync(model: Model).rebuildTable("public.user");
 
 // 使用批量增量模式，批量同步 public.admin 下所有的表
-client().syncAll("public.admin", "rebuild");
+sync(model: Model).rebuildTable("public.admin");
+```
+
+### 字段同步
+
+> 在已有表上新增字段，该模式只会添加新的列，不改变已有列和数据。
+
+```js
+sync(model: Model).addColumn(options);
+
+sync(model: Model).removeColumn(options);
 ```
 
 ## 函数链

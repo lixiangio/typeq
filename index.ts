@@ -1,7 +1,7 @@
-import { Clients, queue, } from 'typeq';
+import { Clients, queue } from 'typeq';
 import pgclient from '@typeq/pg';
 import config from './config/localhost.js'
-import './models/index.js';
+import models from './models/index.js';
 
 // queue.before(ctx => {
 //   console.log('before');
@@ -28,3 +28,5 @@ queue.after(ctx => {
 })
 
 const clients = new Clients(pgclient, config);
+
+// console.log(clients)

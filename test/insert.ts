@@ -1,6 +1,6 @@
 import test from 'jtm';
 import { Schema } from 'typea';
-import { models } from 'typeq';
+import models from '../models/index.js';
 import { tasks0, tasks1, tasks2 } from '../data/tasks.js';
 import { admin0 } from '../data/admin.js';
 
@@ -27,7 +27,7 @@ test('insert multiple', async t => {
   const schema = new Schema([
     { id: Number, uid: 6 },
     { id: Number, uid: 6 }
-  ])
+  ]);
 
   const { value, error } = schema.verify(result);
 

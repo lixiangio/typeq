@@ -164,7 +164,7 @@ export interface StructObject {
 }
 
 /**
- * 创建 JSON 数组、对象结构类型函数
+ * 创建 JSON 数组、对象结构
  * @param name 类型名称 
  * @param methods 类型验证方法集合
  * @param outputs 后置输出函数集合

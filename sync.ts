@@ -91,10 +91,10 @@ export default function sync(model: ModelFn) {
      * 创建序列 id
      * @param paths 表路径选项
      */
-     async creatSequence(paths: Paths) {
+    async creatSequence(paths: Paths) {
 
       paths = { ...defaultPaths, ...paths };
-      
+
       const { schema, table } = paths;
 
       const sequence: string[] = [];
@@ -165,7 +165,7 @@ export default function sync(model: ModelFn) {
      */
     async addColumn(paths?: Paths) {
 
-      await this.increment({ ...defaultPaths, ...paths }, true, false);
+      await this.column({ ...defaultPaths, ...paths }, true, false);
 
     },
     /**
@@ -174,22 +174,24 @@ export default function sync(model: ModelFn) {
      */
     async removeColumn(paths?: Paths) {
 
-      await this.increment({ ...defaultPaths, ...paths }, false, true);
+      await this.column({ ...defaultPaths, ...paths }, false, true);
 
     },
     /**
-     * 增量更新，根据模型自动新增和删除字段
+     * 根据模型自动新增和删除字段
      * @param paths 配置选项
      * @param add 新增字段
      * @param remove 删除字段
      */
-    async increment(paths: Paths, add = true, remove = false) {
+    async column(paths: Paths, add = true, remove = false) {
 
       const { schema, table } = paths;
 
       const SQL = `select column_name, data_type, is_nullable from information_schema.columns where table_schema='${schema}' and table_name='${table}';`;
 
-      const { rows } = await query({ paths, SQL });
+      const ctx = await query({ paths, SQL });
+
+      const { rows } = ctx.body;
 
       if (rows.length === 0) return;
 
@@ -261,7 +263,7 @@ export default function sync(model: ModelFn) {
     async uniqueIndex(paths?: Paths) {
 
       paths = { ...defaultPaths, ...paths };
-      
+
       const { schema, table } = paths;
 
       const sqlArray = [];

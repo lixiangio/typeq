@@ -47,6 +47,10 @@ const intMethods = {
   }
 };
 
+/**
+ * integer 类型
+ * @param options 类型选项
+ */
 export function integer(options: Options) { return createType<Options>('integer', options, intMethods, outputs); }
 
 Object.defineProperty(integer, 'outputs', { value: outputs });

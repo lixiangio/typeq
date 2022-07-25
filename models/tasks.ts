@@ -1,6 +1,6 @@
 import { Schema, Model } from "typeq";
 
-const { integer, boolean, char, text, timestamp, optional, email, jsonb } = Schema.types;
+const { integer, boolean, char, text, timestamp, optional, email } = Schema.types;
 
 export const schema = new Schema({
   id: integer({ primaryKey: true }),

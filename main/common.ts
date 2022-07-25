@@ -16,6 +16,14 @@ export interface Paths {
   table?: string
 }
 
+/** 表返回数据主体 */
+export interface Body {
+  command: string
+  rowCount: number
+  rows: { [name: string]: any }[]
+  fields: object[]
+}
+
 /** 查询上下文 */
 export interface CTX {
   paths: Paths
@@ -26,6 +34,8 @@ export interface CTX {
   RETURNING?: string[]
   /** 合成 SQL 字符串 */
   SQL?: string
+  /** 表返回数据主体 */
+  body?: Body
   [index: string]: any
 }
 

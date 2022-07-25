@@ -145,9 +145,7 @@ export default function (schema: Schema, paths: Paths, result: (ctx: CTX) => any
   }
 
   const promise = Promise.resolve().then(() => {
-    for (const item of updateQueue) {
-      item(ctx);
-    }
+    for (const item of updateQueue) { item(ctx); }
     const { error } = ctx;
     if (error) {
       return { error };

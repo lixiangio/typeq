@@ -1,14 +1,14 @@
-import Schema from './schema.js';
-import createType from './types/createType.js';
-import Struct from './types/createStruct.js';
-import Model, { models, stopQuery } from './model.js';
-import VModel from './vmodel.js';
-import operator from './operator/index.js';
+export { default as Schema } from './schema.js';
+export { default as createType } from './types/createType.js';
+export { default as Struct } from './types/createStruct.js';
+export { default as Model, stopQuery } from './model.js';
+export { default as VModel } from './vmodel.js';
+export { default as operator } from './operator/index.js';
+export * from './safety.js';
+
 import queue from './queue.js';
 import pgsql from "./pgsql.js";
-import type { CTX } from './common.js';
-
-export * from './safety.js';
+import type { CTX, Body } from './common.js';
 
 queue.use(pgsql);
 
@@ -26,13 +26,6 @@ interface Configs {
   }>
 }
 
-interface Body {
-  command: string
-  rowCount: number
-  rows: object[]
-  fields: object[]
-}
-
 interface Client {
   query(sql: string): Promise<Body>
   [name: string]: any
@@ -43,21 +36,24 @@ export const clients: { [name: string]: Client } = {};
 
 /** 创建客户端集合 */
 export class Clients {
-
-  constructor(pool: (config: Configs['name']) => Client, configs: Configs) {
+  /**
+   * 
+   * @param client 客户端实例化函数 
+   * @param configs 数据库配置选项，兼容 pg 模块
+   */
+  constructor(client: (config: Configs['name']) => Client, configs: Configs) {
 
     for (const name in configs) {
-      clients[name] = pool(configs[name]);
+      clients[name] = client(configs[name]);
     }
 
     return clients;
 
   }
-
 }
 
 /** SQL 查询 */
-async function query(ctx: CTX): Promise<CTX> {
+export async function query(ctx: CTX): Promise<CTX> {
 
   const { client: name } = ctx.paths;
   const client = clients[name];
@@ -76,27 +72,34 @@ async function query(ctx: CTX): Promise<CTX> {
  * 获取指定客户端
  * @param client 客户端名称
  */
-function client(client: string = 'default') {
+export function client(client: string = 'default') {
 
   return {
     /**
      * SQL 查询方法
      */
-    query(SQL: string): Promise<any> {
+    async query(SQL: string) {
 
       return query({ paths: { client }, SQL }).then(ctx => ctx.body);
 
     },
     /**
-   * 创建事务对象
-   */
+     * 创建事务对象
+     */
     async transaction() {
 
-      return
+      return {
+        rollback() {
+
+        },
+        commit() {
+
+        }
+      }
 
     },
   }
 
 }
 
-export { Schema, createType, Struct, Model, VModel, models, queue, client, query, operator, stopQuery };
+export { queue };

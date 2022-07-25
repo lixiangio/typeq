@@ -10,6 +10,13 @@ interface Options {
 
 export function mobilePhone(options: Options) {
 
+  const output = {
+    /** 输出为 SQL */
+    sql(value: unknown) { return { value }; },
+    /** 输出为 JSON */
+    json(value: string) { return { value }; }
+  }
+
   return createType('varchar(100)', options, {
     ...createType.baseMethods,
     type(value) {
@@ -20,12 +27,6 @@ export function mobilePhone(options: Options) {
         return { error: `值必须为 mobile phone ，实际赋值为 '${value}'` };
       }
     }
-  },
-    {
-      /** 输出为 SQL */
-      sql(value: unknown) { return { value }; },
-      /** 输出为 JSON */
-      json(value: string) { return { value }; }
-    });
+  }, output);
 
 }

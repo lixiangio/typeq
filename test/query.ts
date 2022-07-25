@@ -42,5 +42,3 @@ test('query select', async t => {
    t.ok(value, error);
 
 })
-
-

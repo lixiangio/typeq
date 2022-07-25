@@ -1,6 +1,6 @@
 import test from 'jtm';
-import { models } from 'typeq';
 import { Schema, object } from 'typea';
+import models from '../../models/index.js';
 
 const { tasks } = models;
 
@@ -26,7 +26,6 @@ test('find & count', async t => {
          area: String,
          state: Boolean,
          modes: {},
-         ids: null
       }
    ]);
 

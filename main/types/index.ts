@@ -64,40 +64,20 @@ Object.defineProperty(range, 'outputs', { value: outputs });
 Object.defineProperty(range, methodKey, { value: rangeMethods.type });
 
 
-/** integer 数组 */
-
-const integersMethods = {
+// /** integer 数组 */
+const arrayMethods = {
   ...baseMethods,
   type(value: [number, number]) {
-    if (Array.isArray(value)) {
-      if (value.length == 2) {
-        const [a, b] = value;
-        if (typeof a === 'number' && typeof b === 'number') {
-          return { value: `'[${b}, ${b}]'`, next: true };
-        } else {
-          return { error: `range 内成员必须为 number 类型` };
-        }
-      } else {
-        return { error: `range 长度必须等于 2` };
-      }
-    } else {
-      return { error: ` 值必须为 range 类型，实际赋值为 '${value}'` };
-    }
+    return { value }
   }
 }
 
-interface integersOptions {
+interface arrayOptions {
   default?: number[]
   comment?: string,
   optional?: boolean
+  child?: string
 }
-
-/** integer 数组 */
-function integers(options: integersOptions) { return createType<integersOptions>('integer[]', options, integersMethods, outputs); }
-
-Object.defineProperty(integers, 'name', { value: 'integer[]' });
-Object.defineProperty(integers, 'outputs', { value: outputs });
-Object.defineProperty(integers, methodKey, { value: integersMethods.type });
 
 
 export interface StructFunction {
@@ -163,7 +143,6 @@ export function optional(node: StructFunction | StructObject | object | any[]) {
 
 }
 
-
 const types = {
   integer,
   int: integer,
@@ -181,7 +160,6 @@ const types = {
   date,
   timestamp,
   range,
-  integers,
   json,
   jsonb,
   object,

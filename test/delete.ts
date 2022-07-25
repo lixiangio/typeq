@@ -1,6 +1,7 @@
 import test from 'jtm';
 import { Schema } from 'typea';
-import { models, operator } from 'typeq';
+import { operator } from 'typeq';
+import models from '../models/index.js';
 import { tasks2 } from '../data/tasks.js';
 
 const { tasks } = models;

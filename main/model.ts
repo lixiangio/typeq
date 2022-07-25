@@ -68,9 +68,6 @@ export interface ModelFn extends Model {
   (paths?: Paths): Model
 }
 
-/** 模型实例集合，供外部引用 */
-export const models: { [name: string]: ModelFn } = {};
-
 interface ModelClass {
   new(table: string, schema: Schema): ModelFn
 }
@@ -116,8 +113,6 @@ const Model: ModelClass = class {
     modelFn.updatePk = updatePk;
     modelFn.delete = _delete;
     modelFn.deletePk = deletePk;
-
-    models[table] = modelFn;
 
     return modelFn;
 
