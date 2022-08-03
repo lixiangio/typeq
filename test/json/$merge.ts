@@ -1,9 +1,8 @@
 import test from 'jtm';
 import { Schema } from 'typea';
 import { operator } from 'typeq';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
-const { tasks } = models;
 const { $merge } = operator;
 
 test('update $merge', async t => {

@@ -1,13 +1,12 @@
 import test from 'jtm';
 import { operator } from 'typeq';
 import { Schema, object, string } from 'typea';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
-const { tasks } = models;
 const { $in } = operator;
 
 const setData = {
-  area: '11',
+  area: `${Math.random()}`,
   keywords: {
     area: `7'7`,
     state: true
@@ -53,7 +52,7 @@ test('update', async t => {
 
 test('update and or', async t => {
 
-  const result = await tasks()
+  const result = await tasks
     .update({ "id": 1 })
     .and({ "id": $in(1, 8, 9) })
     .or({ "area": "11" })

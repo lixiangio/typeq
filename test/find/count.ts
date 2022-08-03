@@ -1,8 +1,8 @@
 import test from 'jtm';
 import { Schema, object } from 'typea';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
-const { tasks } = models;
+const { string } = Schema.types;
 
 test('find & count', async t => {
 
@@ -19,7 +19,7 @@ test('find & count', async t => {
          id: 1,
          uid: Number,
          keywords: {
-            area: String,
+            area: string({ optional: true }),
             state: Boolean
          },
          list: [...object],

@@ -1,8 +1,6 @@
 import test from 'jtm';
 import { Schema, object } from 'typea';
-import models from '../../models/index.js';
-
-const { tasks } = models;
+import { tasks } from '../../models/index.js';
 
 test('schema ', async t => {
 

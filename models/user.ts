@@ -1,8 +1,9 @@
 import { Schema, Model } from 'typeq';
+import email from 'typeq/types/email.js';
 
 const { integer, string } = Schema.types;
 
-export const schema = new Schema({
+const schema = new Schema({
   'id': integer({ primaryKey: true }),
   'type': string({
     'comment': "用户类型",
@@ -17,7 +18,7 @@ export const schema = new Schema({
   'image': string({ comment: "头像" }),
   'phone': string({ comment: "手机号" }),
   'password': string({ comment: "密码" }),
-  'email': string({ comment: "邮箱" }),
+  'email': email({ comment: "邮箱" }),
 });
 
 export default new Model('user', schema);

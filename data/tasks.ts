@@ -4,7 +4,7 @@ const { $sql } = operator;
 
 export const tasks0 = {
   uid: 6,
-  email: "abs@xx.cc",
+  email: "abs@gmail.com",
   keywords: {
     state: false,
     area: `'kkk"k<script\n\t\n
@@ -40,14 +40,14 @@ export const tasks0 = {
       'test': {},
     }
   ],
-  area: "xxx\n\t",
+  area: "xx\n\t",
   state: false
 };
 
 export const tasks1 = {
   id: 1,
   uid: 6,
-  email: 'abs@xx.cc',
+  email: 'abs@gmail.com',
   area: '\\6666666666',
   keywords: {
     state: false,
@@ -84,12 +84,11 @@ export const tasks1 = {
 };
 
 export const tasks2 = {
-  // id: 101111,
   uid: 6,
   keywords: {
     state: false
   },
-  email: 'abs@xx.cc',
+  email: 't2@gmail.com',
   list: [],
   area: "xxx",
   state: false

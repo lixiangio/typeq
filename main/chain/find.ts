@@ -1,8 +1,6 @@
 import where from './where.js';
-import { query } from '../index.js';
-import { findQueue } from '../queue.js';
-import Schema from '../schema.js';
-import type { Condition, CTX, Paths, Data } from '../common.js';
+import { type Model } from '../model.js';
+import type { Condition, CTX, Data } from '../common.js';
 
 const directions = { 'desc': "DESC", 'asc': "ASC" };
 
@@ -32,24 +30,29 @@ export type FindPromise<T = Data[]> = Promise<T> & Partial<{
    count: (isNewQueue?: boolean) => FindPromise<T>
 }>;
 
-export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => any): FindPromise<T> {
+export default function <T>(model: Model, result: (ctx: CTX) => Promise<any>): FindPromise<T> {
+
+   const { schema, client, options } = model;
 
    const ORDER = [], GROUP = [];
 
    const ctx = {
-      paths,
       schema,
+      client,
+      options,
       SELECT: [],
       WHERE: [],
       GROUP,
       ORDER,
       OFFSET: 0,
       LIMIT: 0,
+      SQL: undefined,
       body: undefined,
       error: undefined
    };
 
    const { fields: schemaFields } = schema;
+   const { findQueue } = client;
 
    const chain = {
       ctx,
@@ -77,6 +80,10 @@ export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => 
          return this;
 
       },
+      /**
+       * 聚合查询
+       * @param fields 一个或多个字段名
+       */
       group(...fields: string[]) {
 
          for (const name of fields) {
@@ -91,8 +98,8 @@ export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => 
 
       },
       /**
-       * 定义行起的始位置
-       * @param value 
+       * 定义分页起始始位置
+       * @param value 分页起始值
        */
       offset(value: number) {
 
@@ -153,8 +160,8 @@ export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => 
 
       },
       /**
-       * 获取数据总数，复制当前实例上下文并创建新的查询
-       * @param isNewQueue 是否创建新实例
+       * 获取数据总量，复制当前实例上下文并创建新的查询
+       * @param isNewQueue 是否创建的新实例，不改变当前实例状态
        */
       count(isNewQueue = false) {
 
@@ -162,22 +169,22 @@ export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => 
 
          if (isNewQueue) {
 
-            const _ctx = { ...ctx, SELECT };
+            const ctx_ = { ...ctx, SELECT };
 
-            for (const item of findQueue) { item(_ctx); }
+            for (const item of findQueue) { item(ctx_); }
 
-            const { error } = _ctx;
+            const { error } = ctx_;
 
             if (error) {
-               return { error };
+               throw new Error(error);
             } else {
-               return query(_ctx).then(_ctx => _ctx.body.rows[0]);
+               return client.query(ctx_.SQL).then(body => body.rows[0]);
             }
 
          } else {
 
             /** 替换返回值处理函数，改变输出结果 */
-            result = ctx => ctx.body.rows[0];
+            result = ctx => client.query(ctx.SQL).then(body => body.rows[0]);
 
             ctx.SELECT = SELECT;
 
@@ -189,12 +196,14 @@ export default function <T>(schema: Schema, paths: Paths, result: (ctx: CTX) => 
    };
 
    const promise = Promise.resolve().then(() => {
-      for (const item of findQueue) { item(ctx); }
+      for (const item of findQueue) {
+         item(ctx);
+      }
       const { error } = ctx;
       if (error) {
-         return { error };
+         throw new Error(error);
       } else {
-         return query(ctx).then(result);
+         return result(ctx);
       }
    });
 

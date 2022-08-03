@@ -1,23 +1,20 @@
 import test from 'jtm';
-import { Schema, Utility } from 'typea';
+import { Schema, Utility, string } from 'typea';
 import { operator } from 'typeq';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
 const { union } = Utility;
 
-const { tasks } = models;
 const { $sql } = operator;
 
 test('sql', async t => {
 
    const result = await tasks.findOne({ id: $sql(`in(1, 120, '170')`) });
 
-   // console.log(result)
-
    const schema = new Schema({
       id: Number,
       keywords: Object,
-      // email: String,
+      email: string({ optional: true }),
       area: String,
       state: Boolean,
       // createdAt: union(Date, null),

@@ -1,10 +1,8 @@
 import test from 'jtm';
 import { Schema } from 'typea';
-import models from '../models/index.js';
+import { tasks, admin } from '../models/index.js';
 import { tasks0, tasks1, tasks2 } from '../data/tasks.js';
 import { admin0 } from '../data/admin.js';
-
-const { tasks, admin } = models;
 
 const options = { schema: 'public' };
 
@@ -55,7 +53,7 @@ test('insert conflict nothing', async t => {
     .insert(tasks1)
     .conflict("id");
 
-    t.ok(result.length === 0);
+  t.ok(result.length === 0);
 
 });
 

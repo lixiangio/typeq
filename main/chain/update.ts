@@ -1,9 +1,6 @@
-import Schema from '../schema.js';
-import { query } from '../index.js';
 import where from './where.js';
-import { methodKey } from '../common.js';
-import { updateQueue } from '../queue.js';
-import type { Paths, Condition, CTX } from '../common.js';
+import { methodKey, type Condition, type CTX } from '../common.js';
+import type { Model } from '../model.js';
 
 const { toString } = Object.prototype;
 
@@ -32,30 +29,33 @@ interface Chain {
    */
   _return: (...fields: string[]) => UpdatePromise
   /**
-   * 为符合匹配条件的数据赋值
-   * @param entity 需要更新的数据
+   * 为匹配的数据赋值
+   * @param data 更新的数据
    */
-  set: (entity: Entity) => UpdatePromise
+  set: (data: Entity) => UpdatePromise
 }
 
 export type UpdatePromise = Promise<any> & Partial<Chain>
 
-export default function (schema: Schema, paths: Paths, result: (ctx: CTX) => any): UpdatePromise {
+export default function (model: Model, result: (ctx: CTX) => any): UpdatePromise {
 
   const SET = [];
+  const { schema, client, options } = model;
 
   const ctx = {
     schema,
-    paths,
+    client,
+    options,
     SET,
     WHERE: [],
     RETURNING: [],
+    SQL: undefined,
     body: undefined,
     error: undefined
   };
 
   const { fields } = schema;
-  const { schema: schemaName, table } = paths;
+  const { schema: schemaName, table } = options;
 
   const chain: Chain = {
     ctx,
@@ -142,15 +142,15 @@ export default function (schema: Schema, paths: Paths, result: (ctx: CTX) => any
       return this;
 
     }
-  }
+  };
 
   const promise = Promise.resolve().then(() => {
-    for (const item of updateQueue) { item(ctx); }
+    for (const item of client.updateQueue) { item(ctx); }
     const { error } = ctx;
     if (error) {
-      return { error };
+      throw new Error(error);
     } else {
-      return query(ctx).then(result);
+      return result(ctx);
     }
   });
 

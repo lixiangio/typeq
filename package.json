@@ -8,7 +8,7 @@
   "exports": {
     ".": "./main/index.js",
     "./sync": "./sync.js",
-    "./types/*": "./types/*.js"
+    "./types/*.js": "./types/*.js"
   },
   "types": "./**/*.d.ts",
   "devDependencies": {
@@ -27,8 +27,7 @@
   "files": [
     "main/**/*.js",
     "sync/**/*.js",
-    "types/**/*.js",
-    "validator/**/*.js"
+    "types/**/*.js"
   ],
   "author": "",
   "license": "ISC",
@@ -39,5 +38,8 @@
   "bugs": {
     "url": "https://github.com/xiangle/typeq/issues"
   },
-  "homepage": "https://github.com/xiangle/typeq#readme"
+  "homepage": "https://github.com/xiangle/typeq#readme",
+  "dependencies": {
+    "@typeq/postgres": "file:../@typeq-postgres"
+  }
 }

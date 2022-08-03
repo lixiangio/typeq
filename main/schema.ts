@@ -22,13 +22,13 @@ interface Field {
 /** 实体表字段集合 */
 interface Fields { [name: string]: Field }
 
-interface Struct { [index: string]: any }
+interface Struct { [name: string]: any }
 
 const { integer, timestamp, array, object } = types;
 
 const { hasOwnProperty, toString } = Object.prototype;
 
-export default class Schema {
+export class Schema {
   static types: Types = types
   struct: Struct
   fields: Fields = {}
@@ -153,7 +153,7 @@ export default class Schema {
               }
             }
           };
-          
+
         } else {
 
           throw new Error(`${name} 字段声明无效`);
@@ -203,5 +203,4 @@ export default class Schema {
     }
 
   }
-
 }

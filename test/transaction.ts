@@ -1,39 +1,44 @@
 import test from 'jtm';
-import { Schema } from 'typea';
-import { client, operator } from 'typeq';
-import models from '../models/index.js';
+import { Schema, object } from 'typea';
+import { operator, Transaction } from 'typeq';
+import { tasks } from '../models/index.js';
 
-const schema = new Schema([{
-  id: Number,
-  keywords: Object,
-  xx: String,
-}]);
+const schema = new Schema([
+  ...object({
+    id: Number,
+    keywords: Object,
+    xx: String,
+  })
+]);
 
 const { $in, $as } = operator;
-const { tasks } = models;
 
 test('transaction', async t => {
 
-  const transaction = await client().transaction();
+  const transaction = new Transaction('default');
 
-  const result = await tasks({ transaction })
+  await transaction.connect();
+
+  const result = await tasks(transaction)
     .select('id', 'keywords', $as("area", "xx"), 'createdAt')
     .offset(2)
-    .limit(3)
+    .limit(3);
 
-  await tasks({ transaction })
+  await tasks(transaction)
     .update({
       // area: "11",
-      area: null,
+      area: '123',
       state: true
     })
-    .where({ "id": $in(6, 8, 9) })
+    .and({ "id": $in(6, 8, 9) })
     .or({ "area": "11" })
-    .return("id", "area", "list", "keywords")
+    .return("id", "area", "list", "keywords");
 
-  // transaction.rollback();
-  
+  // await transaction.rollback();
+
   await transaction.commit();
+
+  transaction.release();
 
   const { value, error } = schema.verify(result);
 

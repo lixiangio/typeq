@@ -10,7 +10,7 @@ function converter(parameter: object[], ctx: CTX): string {
 
    if (parameter.length === 0) throw new Error(`参数不允许为空`);
 
-   const { table } = ctx.paths;
+   const { table } = ctx.options;
    const { fields } = ctx.schema;
 
    const OR = [];

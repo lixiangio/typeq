@@ -1,8 +1,6 @@
-import Schema from '../schema.js';
-import { query } from '../index.js';
-import { deleteQueue } from '../queue.js';
 import where from './where.js';
-import type { Paths, CTX, Condition } from '../common.js';
+import type { Model } from '../model.js';
+import type { CTX, Condition } from '../common.js';
 
 interface DeleteChain {
    ctx: CTX
@@ -31,18 +29,23 @@ interface DeleteChain {
 export interface DeletePromise extends Promise<any> { }
 export interface DeletePromise extends Partial<DeleteChain> { }
 
-export default function (schema: Schema, paths: Paths, result: (ctx: CTX) => any): DeletePromise {
+export default function (model: Model, result: (ctx: CTX) => any): DeletePromise {
 
+   const { schema, client, options } = model;
    const { fields: schemaFields } = schema;
 
    const ctx = {
       schema,
-      paths,
+      client,
+      options,
       WHERE: [],
       RETURNING: [],
+      SQL: undefined,
       body: undefined,
       error: undefined
    };
+
+   const { deleteQueue } = client;
 
    const chain: DeleteChain = {
       ctx,
@@ -88,12 +91,14 @@ export default function (schema: Schema, paths: Paths, result: (ctx: CTX) => any
    };
 
    const promise = Promise.resolve().then(() => {
-      for (const item of deleteQueue) { item(ctx); }
+      for (const item of deleteQueue) {
+         item(ctx);
+      }
       const { error } = ctx;
       if (error) {
-         return { error };
+         throw new Error(error);
       } else {
-         return query(ctx).then(result);
+         return result(ctx);
       }
    });
 

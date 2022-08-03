@@ -1,4 +1,4 @@
-import createType, { baseMethods, } from './createType.js';
+import { createType, baseMethods, } from './createType.js';
 import { methodKey, } from '../common.js';
 
 interface Options {
@@ -20,7 +20,7 @@ const methods = {
       // SQL 单引号转义
       return { value: value.replace(/'/g, "''"), next: true };
     } else {
-      return { error: ` 值必须为 string 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 string 类型，实际赋值为 '${value}'` };
     }
   },
   /**限制最小长度 */
@@ -89,8 +89,8 @@ export function char(options: Options) {
 
 }
 
-Object.defineProperty(char, 'outputs', { value: outputs });
-Object.defineProperty(char, methodKey, { value: methods.type });
+char.outputs = outputs;
+char[methodKey] = methods.type;
 
 
 /** 可变长度字符串 */
@@ -102,8 +102,8 @@ export function varchar(options: Options) {
 
 }
 
-Object.defineProperty(varchar, 'outputs', { value: outputs });
-Object.defineProperty(varchar, methodKey, { value: methods.type });
+varchar.outputs = outputs;
+varchar[methodKey] = methods.type;
 
 
 /** 可变长度字符串，无预设长度约束 */
@@ -113,15 +113,9 @@ export function text(options: Options) {
 
 }
 
-Object.defineProperty(text, 'outputs', { value: outputs });
-Object.defineProperty(text, methodKey, { value: methods.type });
+text.outputs = outputs;
+text[methodKey] = methods.type;
 
-
-interface uuidOptions {
-  default?: number
-  optional?: boolean,
-  comment?: string,
-}
 
 const uuidMethods = {
   ...baseMethods,
@@ -129,13 +123,17 @@ const uuidMethods = {
     if (typeof value === 'string') {
       return { value: value.replace(/'/g, "''"), next: true };
     } else {
-      return { error: ` 值必须为 uuid 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 uuid 类型，实际赋值为 '${value}'` };
     }
   }
 }
 
 /** 通用唯一标识符 */
-export function uuid(options: uuidOptions) { return createType<uuidOptions>('uuid', options, uuidMethods, outputs); }
+export function uuid(options: {
+  default?: number
+  optional?: boolean,
+  comment?: string,
+}) { return createType('uuid', options, uuidMethods, outputs); }
 
-Object.defineProperty(uuid, 'outputs', { value: outputs });
-Object.defineProperty(uuid, methodKey, { value: uuidMethods.type });
+uuid.outputs = outputs;
+uuid[methodKey] = uuidMethods.type;

@@ -1,13 +1,13 @@
 import test from 'jtm';
-import { Schema } from 'typea';
-import models from '../../models/index.js';
+import { Schema, string, Utility } from 'typea';
+import { tasks } from '../../models/index.js';
 
-const { tasks } = models;
+const { union } = Utility;
 
 const schema = new Schema({
    id: Number,
    keywords: Object,
-   // email: String,
+   email: union(string, null),
    area: String,
    state: Boolean,
    // createdAt: String,

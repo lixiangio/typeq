@@ -1,8 +1,7 @@
 import test from 'jtm';
 import { operator } from 'typeq';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
-const { tasks } = models;
 const { $insertByPath, } = operator;
 
 test('update $insertByPath', async t => {

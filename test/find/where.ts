@@ -1,9 +1,8 @@
 import test from 'jtm';
 import { Schema, object } from 'typea';
 import { operator } from 'typeq';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
-const { tasks } = models;
 const { $in, $as, $scope, $includes } = operator;
 
 // console.log($in(565, 787)())

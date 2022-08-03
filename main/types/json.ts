@@ -9,7 +9,7 @@ const jsonMethods = {
     if (typeof value === 'object') {
       return { value };
     } else {
-      return { error: ` 值必须为 json 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 json 类型，实际赋值为 '${value}'` };
     }
   }
 }
@@ -53,7 +53,7 @@ const objectMethods = {
     if (toString.call(value) === '[object Object]') {
       return { value };
     } else {
-      return { error: ` 值必须为 object 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 object 类型，实际赋值为 '${value}'` };
     }
   }
 }
@@ -83,7 +83,7 @@ const arrayMethods = {
     if (Array.isArray(value)) {
       return { value };
     } else {
-      return { error: ` 值必须为 array 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 array 类型，实际赋值为 '${value}'` };
     }
   }
 }

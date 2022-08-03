@@ -2,9 +2,9 @@ import test from 'jtm';
 import { client } from 'typeq';
 import { Schema, object, string, boolean } from 'typea';
 
-test('query insert', async t => {
+test('insert', async t => {
 
-   const result = await client().query(`INSERT INTO "public"."tasks" ("id","uid","keywords","list","area","modes","state","createdAt","updatedAt") VALUES (DEFAULT, 6, ('{"state":false}')::jsonb, ('[]')::jsonb, now(), '{}'::jsonb, false, DEFAULT, DEFAULT) RETURNING "id", "uid", "state"`);
+   const result = await client('default').query(`INSERT INTO "public"."tasks" ("id","uid","keywords","list","area","modes","state","createdAt","updatedAt") VALUES (DEFAULT, 6, ('{"state":false}')::jsonb, ('[]')::jsonb, now(), '{}'::jsonb, false, DEFAULT, DEFAULT) RETURNING "id", "uid", "state"`);
 
    const schema = new Schema([
       ...object({
@@ -20,7 +20,7 @@ test('query insert', async t => {
 
 })
 
-test('query select', async t => {
+test('select', async t => {
 
    const result = await client().query(`SELECT * FROM "tasks" WHERE id = 1 LIMIT 1`);
 
@@ -30,15 +30,15 @@ test('query select', async t => {
          uid: Number,
          state: boolean,
          keywords: {
-            area: string,
+            area: string({ optional: true }),
             state: boolean
          },
          list: [...object],
       })
    ]);
 
-   const { value, error } = schema.verify(result.rows)
+   const { value, error } = schema.verify(result.rows);
 
    t.ok(value, error);
 
-})
+});

@@ -1,5 +1,5 @@
-import isISO8601 from '../../validator/isISO8601.js';
-import createType, { baseMethods } from './createType.js';
+import isISO8601 from '../../types/validator/isISO8601.js';
+import { createType, baseMethods } from './createType.js';
 import { methodKey } from '../common.js';
 
 interface Options {
@@ -18,7 +18,7 @@ const dateMethods = {
     if (isNaN(date) === false) {
       return { value, next: true };
     } else {
-      return { error: ` 值必须为 date 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 date 类型，实际赋值为 '${value}'` };
     }
   },
 };
@@ -34,10 +34,10 @@ const outputs = {
   }
 }
 
-export function date(options: Options) { return createType<Options>('date', options, dateMethods, outputs); }
+export function date(options: Options) { return createType('date', options, dateMethods, outputs); }
 
-Object.defineProperty(date, 'outputs', { value: outputs });
-Object.defineProperty(date, methodKey, { value: dateMethods.type });
+date.outputs = outputs;
+date[methodKey] = dateMethods.type;
 
 const timestampMethods = {
   ...baseMethods,
@@ -49,12 +49,13 @@ const timestampMethods = {
     if (isISO8601(value)) {
       return { value, next: true };
     } else {
-      return { error: ` 值必须为 timestamp 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 timestamp 类型，实际赋值为 '${value}'` };
     }
   }
 };
 
-export function timestamp(options: Options) { return createType<Options>('timestamp', options, timestampMethods, outputs); }
+export function timestamp(options: Options) { return createType('timestamp', options, timestampMethods, outputs); }
 
-Object.defineProperty(timestamp, 'outputs', { value: outputs });
-Object.defineProperty(timestamp, methodKey, { value: timestampMethods.type });
+timestamp.outputs = outputs;
+timestamp[methodKey] = timestampMethods.type;
+

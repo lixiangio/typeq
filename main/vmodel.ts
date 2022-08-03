@@ -1,17 +1,32 @@
-import Find from './chain/find.js';
+import { type ModelFn } from './model.js';
+import findChain, { type FindPromise } from './chain/find.js';
+import type { Options, Data, $Client } from './common.js';
+
+interface Struct { [name: string]: any }
+
+export class VSchema {
+  /**
+   * 虚拟模式
+   * @param struct 表结构体
+   * @param schema Schema 类的实例
+   */
+  constructor(struct: Struct, model: ModelFn | { [name: string]: ModelFn }) {
+
+  }
+}
 
 /**
  * 虚拟模型类
  */
-export default class VModel {
+export class VModel {
   fields = {};
   keys = {};
   schema = 'public';
   /**
-   * @param options 模型选项
-   * @param client 客户端
+   * @param name 虚拟模型或视图名称
+   * @param schema Schema 类的实例
    */
-  constructor(model, options: object, xx?) {
+  constructor(name, schema: object, xx?) {
 
     // const { joinType } = options;
 
@@ -160,9 +175,11 @@ export default class VModel {
     // };
 
   }
-  // select(...fields): Find {
+  // select(...fields): FindPromise {
 
-  //   const chain = new Find(this);
+  //   const chain = findChain<Data[] | null>(this, ctx=>{
+
+  //   });
 
   //   chain.result = (data) => data.rows;
 
@@ -173,9 +190,9 @@ export default class VModel {
   //  * 查询多条
   //  * @param  {Object} condition 
   //  */
-  // find(condition): Find {
+  // find(condition): FindPromise {
 
-  //   const chain = new Find(this);
+  //   const chain = findChain(this);
 
   //   if (condition) {
   //     chain.where(condition);
@@ -190,9 +207,9 @@ export default class VModel {
   //  * 查询单条
   //  * @param  {Object} condition
   //  */
-  // findOne(condition): Find {
+  // findOne(condition): FindPromise {
 
-  //   const chain = new Find(this);
+  //   const chain = findChain(this);
 
   //   if (condition) {
   //     chain.where(condition);
@@ -209,9 +226,9 @@ export default class VModel {
   //  * 查询主键
   //  * @param id 
   //  */
-  // findPk(id: number): Find {
+  // findPk(id: number): FindPromise {
 
-  //   const chain = new Find(this);
+  //   const chain = findChain<>(this);
 
   //   const { primaryKey } = this;
 
@@ -228,12 +245,12 @@ export default class VModel {
   //   return chain;
 
   // }
-  // /**
-  //  * 查询数据总量
-  //  */
+  /**
+   * 查询数据总量
+   */
   // count() {
 
-  //   const chain = new Find(this);
+  //   const chain = findChain(this);
 
   //   return chain.count();
 

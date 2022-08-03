@@ -1,4 +1,4 @@
-import createType, { baseMethods } from './createType.js';
+import { createType, baseMethods } from './createType.js';
 import { json, jsonb, object, array } from './json.js';
 import { varchar, char, text, uuid } from './string.js';
 import { integer, bigint, float4, float8, money } from './number.js';
@@ -13,7 +13,7 @@ const booleanMethods = {
     if (typeof value === 'boolean') {
       return { value, next: true };
     } else {
-      return { error: ` 值必须为 boolean 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 boolean 类型，实际赋值为 '${value}'` };
     }
   }
 }
@@ -25,11 +25,10 @@ interface booleanOptions {
 }
 
 /** 布尔类型 */
-function boolean(options: booleanOptions) { return createType<booleanOptions>('boolean', options, booleanMethods, outputs); }
+function boolean(options: booleanOptions) { return createType('boolean', options, booleanMethods, outputs); }
 
-Object.defineProperty(boolean, 'outputs', { value: outputs });
-Object.defineProperty(boolean, methodKey, { value: booleanMethods.type });
-
+boolean.outputs = outputs;
+boolean[methodKey] = booleanMethods.type;
 
 const rangeMethods = {
   ...baseMethods,
@@ -46,7 +45,7 @@ const rangeMethods = {
         return { error: `range 长度必须等于 2` };
       }
     } else {
-      return { error: ` 值必须为 range 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 range 类型，实际赋值为 '${value}'` };
     }
   }
 }
@@ -58,27 +57,10 @@ interface rangeOptions {
 }
 
 /** 范围匹配 */
-function range(options: rangeOptions) { return createType<rangeOptions>('range', options, rangeMethods, outputs); }
+function range(options: rangeOptions) { return createType('range', options, rangeMethods, outputs); }
 
 Object.defineProperty(range, 'outputs', { value: outputs });
 Object.defineProperty(range, methodKey, { value: rangeMethods.type });
-
-
-// /** integer 数组 */
-const arrayMethods = {
-  ...baseMethods,
-  type(value: [number, number]) {
-    return { value }
-  }
-}
-
-interface arrayOptions {
-  default?: number[]
-  comment?: string,
-  optional?: boolean
-  child?: string
-}
-
 
 export interface StructFunction {
   (struct: object | any[], options?: TypeOptions): StructObject

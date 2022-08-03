@@ -16,12 +16,11 @@ export interface Return<Options> {
 /**
  * 创建类型
  * @param name 类型名称
- * @param options 
- * @param methods 
- * @param outputs 
- * @returns 
+ * @param options 类型选项
+ * @param methods 类型验证方法
+ * @param outputs 输出类型函数，sql 或 json
  */
-export default function createType<Options>(name: string, options: Options, methods: QueryMethods, outputs: Outputs): Return<Options> {
+export function createType<Options>(name: string, options: Options, methods: QueryMethods, outputs: Outputs): Return<Options> {
 
   if (toString.call(options) !== '[object Object]') throw new Error("选项必须要为对象结构");
 

@@ -1,9 +1,9 @@
-import Queue from './queue.js';
 import type { CTX } from './common.js';
+import { Client } from './client.js';
 
-export default function (queue: typeof Queue) {
+export default function (client: Client) {
 
-  queue.insert((ctx: CTX) => {
+  client.insertQueue.push((ctx: CTX) => {
 
     const KEYS = ctx.KEYS.join(',');
 
@@ -19,13 +19,13 @@ export default function (queue: typeof Queue) {
 
     const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
-    const { schema, table } = ctx.paths;
+    const { schema, table } = ctx.options;
 
     ctx.SQL = `INSERT INTO "${schema}"."${table}" (${KEYS}) VALUES ${VALUES}${ON}${RETURNING}`;
 
   })
 
-  queue.find((ctx: CTX) => {
+  client.findQueue.push((ctx: CTX) => {
 
     const SELECT = ctx.SELECT.length ? ctx.SELECT.join(', ') : '*';
 
@@ -39,13 +39,13 @@ export default function (queue: typeof Queue) {
 
     const LIMIT = ctx.LIMIT ? ` LIMIT ${Number(ctx.LIMIT)}` : '';
 
-    const { schema, table } = ctx.paths;
+    const { schema, table } = ctx.options;
 
     ctx.SQL = `SELECT ${SELECT} FROM "${schema}"."${table}"${WHERE}${GROUP}${ORDER}${OFFSET}${LIMIT}`;
 
   })
 
-  queue.update((ctx: CTX) => {
+  client.updateQueue.push((ctx: CTX) => {
 
     ctx.SET.push(`"updatedAt" = now()`);
 
@@ -55,19 +55,19 @@ export default function (queue: typeof Queue) {
 
     const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
-    const { schema, table } = ctx.paths;
+    const { schema, table } = ctx.options;
 
     ctx.SQL = `UPDATE "${schema}"."${table}" SET ${SET}${WHERE}${RETURNING}`;
 
   })
 
-  queue.delete((ctx: CTX) => {
+  client.deleteQueue.push((ctx: CTX) => {
 
     const WHERE = ctx.WHERE.length ? ` WHERE ${ctx.WHERE.join('')}` : '';
 
     const RETURNING = ctx.RETURNING.length ? ` RETURNING ${ctx.RETURNING.join(', ')}` : '';
 
-    const { schema, table } = ctx.paths;
+    const { schema, table } = ctx.options;
 
     ctx.SQL = `DELETE FROM "${schema}"."${table}"${WHERE}${RETURNING}`;
 

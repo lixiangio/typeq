@@ -1,43 +1,47 @@
 import test from 'jtm';
-import sync from 'typeq/sync';
-import models from '../models/index.js';
-
-const { tasks } = models;
+import Sync from 'typeq/sync';
+import { tasks, admin } from '../models/index.js';
 
 const options = { client: 'default', schema: 'public' };
 
-test('createTable', async t => {
+const tasksSync = new Sync(tasks);
 
-   await sync(tasks).createTable(options);
+test('sync table', async t => {
 
-});
-
-test('rebuildTable', async t => {
-
-   await sync(tasks).rebuildTable(options);
+   await tasksSync.createTable(options);
 
 });
 
 
-test('column', async t => {
+// 危险操作，重构模式会强制删除表结构，清空表内数据
+// test('rebuild table', async t => {
 
-   await sync(tasks).addColumn(options);
+//    await tasksSync.rebuildTable(options);
 
-   await sync(tasks).removeColumn(options);
+// });
+
+
+test('sync column', async t => {
+
+   await tasksSync.addColumn(options);
+   await tasksSync.removeColumn(options);
+
+   const adminSync = new Sync(admin);
+
+   await adminSync.addColumn(options);
+   await adminSync.removeColumn(options);
 
 });
 
+test('sync unique index', async t => {
 
-test('index', async t => {
-
-   await sync(tasks).creatSequence(options);
-
-   await sync(tasks).uniqueIndex(options);
+   await tasksSync.creatSequence(options);
+   await tasksSync.uniqueIndex(options);
 
 });
 
-test('comment', async t => {
+test('sync comment', async t => {
 
-   await sync(tasks).creatComment(options);
+   await tasksSync.creatComment(options);
 
 });

@@ -1,8 +1,5 @@
-import Schema from '../schema.js';
-import { query } from '../index.js';
-import { methodKey } from '../common.js';
-import { insertQueue } from '../queue.js';
-import type { CTX, Paths } from '../common.js';
+import { methodKey, type CTX } from '../common.js';
+import { type Model } from '../model.js';
 
 const { hasOwnProperty } = Object.prototype;
 
@@ -24,28 +21,32 @@ interface Chain {
    _return: (...fields: string[]) => InsertPromise
 }
 
-export type InsertPromise = Promise<{ [index: string]: any }[]> & Partial<Chain>
+export type InsertPromise = Promise<{ [namy: string]: any }[]> & Partial<Chain>;
 
-export default function (schema: Schema, paths: Paths, list: object[], result: (ctx: CTX) => any): InsertPromise {
+export default function (model: Model, entity: object[]): Chain {
+
+   const { schema, client, options } = model;
 
    const KEYS = [], VALUES = [];
 
    const { primaryKey, fields } = schema;
 
    const ctx = {
-      paths,
       schema,
+      client,
+      options,
       KEYS,
       VALUES,
       ON: '',
       RETURNING: [`"${primaryKey}"`],
+      SQL: undefined,
       body: undefined,
       error: undefined
    };
 
-   const { schema: schemaName, table } = paths;
+   const { schema: schemaName, table } = options;
 
-   for (const index in list) {
+   for (const index in entity) {
       VALUES[index] = [];
    }
 
@@ -56,9 +57,9 @@ export default function (schema: Schema, paths: Paths, list: object[], result: (
 
       KEYS.push(`"${key}"`);
 
-      for (const index in list) {
+      for (const index in entity) {
 
-         const item = list[index];
+         const item = entity[index];
          const VALUE = VALUES[index];
 
          if (hasOwnProperty.call(item, key)) {
@@ -99,7 +100,7 @@ export default function (schema: Schema, paths: Paths, list: object[], result: (
 
    }
 
-   const chain: Chain = {
+   return {
       ctx,
       conflict(field: string = primaryKey, update: boolean = false) {
 
@@ -125,7 +126,7 @@ export default function (schema: Schema, paths: Paths, list: object[], result: (
          return this;
 
       },
-      return(...names) {
+      return(...names: string[]) {
 
          const RETURNING = [];
 
@@ -162,19 +163,5 @@ export default function (schema: Schema, paths: Paths, list: object[], result: (
 
       }
    };
-
-   const promise: Promise<any> = Promise.resolve().then(() => {
-      for (const item of insertQueue) { item(ctx); }
-      const { error } = ctx;
-      if (error) {
-         return { error };
-      } else {
-         return query(ctx).then(result);
-      }
-   });
-
-   Object.assign(promise, chain);
-
-   return promise;
 
 };

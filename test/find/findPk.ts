@@ -1,13 +1,11 @@
 import test from 'jtm';
 import { Schema } from 'typea';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
 const schema = new Schema({
    id: Number,
    keywords: Object,
 })
-
-const { tasks } = models;
 
 test('findPk ', async t => {
 

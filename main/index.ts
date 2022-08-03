@@ -1,105 +1,110 @@
-export { default as Schema } from './schema.js';
-export { default as createType } from './types/createType.js';
-export { default as Struct } from './types/createStruct.js';
-export { default as Model, stopQuery } from './model.js';
-export { default as VModel } from './vmodel.js';
+import { type Body, $Client } from './common.js';
+import { Client, clients } from './client.js';
+
+export { Client, clients };
+export { createType } from './types/createType.js';
 export { default as operator } from './operator/index.js';
+export { Schema } from './schema.js';
+export { Model } from './model.js';
+export { VModel, VSchema } from './vmodel.js';
+export { methodKey } from './common.js';
 export * from './safety.js';
 
-import queue from './queue.js';
-import pgsql from "./pgsql.js";
-import type { CTX, Body } from './common.js';
-
-queue.use(pgsql);
+/**
+ * 通过 name 获取客户端实例
+ * @param name 客户端名称
+ */
+export function client(name: string = 'default') {
+  return clients[name];
+}
 
 /**
- * 数据库配置选项，兼容 pg 模块
+ * 创建事务客户端实例
  */
-interface Configs {
-  [name: string]: Partial<{
-    host: string,
-    database: string,
-    user: string
-    password: string,
-    port: number | 5432,
-    connectionString: string,
-  }>
+export class Transaction {
+  client: string
+  instance: $Client & { release: () => void }
+  constructor(client: string = 'default') {
+
+    this.client = client;
+
+  }
+  async connect() {
+
+    const instance = await clients[this.client].connect();
+
+    await instance.query('BEGIN');
+
+    this.instance = instance;
+
+  }
+  /** 回滚操作 */
+  async rollback() {
+
+    await this.instance.query('ROLLBACK');
+
+  }
+  /** 提交事务 */
+  async commit() {
+
+    await this.instance.query('COMMIT');
+
+  }
+  /** 释放连接 */
+  release() {
+
+    this.instance.release();
+
+  }
 }
 
-interface Client {
-  query(sql: string): Promise<Body>
-  [name: string]: any
-}
 
-/** 客户端集合 */
-export const clients: { [name: string]: Client } = {};
+/** 将多个函数链合成的 SQL 合并到一个 SQL 中 */
+export class Collection {
+  client: string
+  instance: $Client
+  sqls: string[] = []
+  constructor(client: string = 'default') {
 
-/** 创建客户端集合 */
-export class Clients {
-  /**
-   * 
-   * @param client 客户端实例化函数 
-   * @param configs 数据库配置选项，兼容 pg 模块
-   */
-  constructor(client: (config: Configs['name']) => Client, configs: Configs) {
+    this.client = client;
+    const instance = clients[client];
 
-    for (const name in configs) {
-      clients[name] = client(configs[name]);
+    const { insertQueue, findQueue, updateQueue, deleteQueue } = instance;
+    const { sqls } = this;
+
+    this.instance = {
+      insertQueue,
+      findQueue,
+      updateQueue,
+      deleteQueue,
+      async query(sql: string) {
+        sqls.push(sql);
+        return { rows: [] };
+      }
     }
 
-    return clients;
+  }
+  /**
+   * 聚合查询
+   */
+  async query(): Promise<Body[]> {
+
+    return Promise.resolve().then(async () => {
+      return clients[this.client].query(this.sqls.join('; '))
+        .then(body => {
+          if (Array.isArray(body)) {
+            return body;
+          } else {
+            return [body];
+          }
+        });
+    })
 
   }
-}
-
-/** SQL 查询 */
-export async function query(ctx: CTX): Promise<CTX> {
-
-  const { client: name } = ctx.paths;
-  const client = clients[name];
-
-  if (client) {
-    ctx.body = await client.query(ctx.SQL);
-  } else {
-    throw new Error(`client ${name} not found `);
+  /**
+   * 等待所有绑定 SQL 完成合成
+   */
+  async sql() {
+    return Promise.resolve().then(() => this.sqls.join('; '));
   }
-
-  return ctx;
-
 }
-
-/**
- * 获取指定客户端
- * @param client 客户端名称
- */
-export function client(client: string = 'default') {
-
-  return {
-    /**
-     * SQL 查询方法
-     */
-    async query(SQL: string) {
-
-      return query({ paths: { client }, SQL }).then(ctx => ctx.body);
-
-    },
-    /**
-     * 创建事务对象
-     */
-    async transaction() {
-
-      return {
-        rollback() {
-
-        },
-        commit() {
-
-        }
-      }
-
-    },
-  }
-
-}
-
-export { queue };

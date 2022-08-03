@@ -1,12 +1,11 @@
 import test from 'jtm';
 import { Schema, Utility, object } from 'typea';
 import { operator } from 'typeq';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
 const { union } = Utility;
 
 const { $as } = operator;
-const { tasks } = models;
 
 test('select', async t => {
 

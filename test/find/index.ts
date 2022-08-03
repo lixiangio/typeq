@@ -1,13 +1,12 @@
 import test from 'jtm';
 import { Schema, Utility, object, string } from 'typea';
 import { operator } from 'typeq';
-import models from '../../models/index.js';
+import { tasks } from '../../models/index.js';
 
 const { union } = Utility;
 const { $as } = operator;
-const { tasks } = models;
 
-const paths = {
+const options = {
   client: "default",
   schema: 'public',
   table: 'tasks',
@@ -16,7 +15,7 @@ const paths = {
 
 test('select', async t => {
 
-  const result = await tasks(paths)
+  const result = await tasks(options)
     .select('id', 'keywords', 'list', $as("area", "xx"), 'createdAt')
     .offset(1)
     .limit(3);
@@ -37,7 +36,7 @@ test('select', async t => {
 
 test('_return', async t => {
 
-  const result = await tasks(paths)
+  const result = await tasks(options)
     .find({ "uid": 6 })
     .limit(2)
     .order({
@@ -49,11 +48,11 @@ test('_return', async t => {
   const schema = new Schema([
     ...object({
       id: Number,
-      uid: 6,
+      uid: Number,
       list: [...object],
       area: String,
       modes: {},
-      state: false
+      state: Boolean
     })
   ]);
 

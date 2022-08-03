@@ -1,32 +1,35 @@
-import { Clients, queue } from 'typeq';
+import { Client } from 'typeq';
 import pgclient from '@typeq/pg';
-import config from './config/localhost.js'
-import models from './models/index.js';
+import './models/index.js';
 
-// queue.before(ctx => {
-//   console.log('before');
-// })
+const configs = {
+  'default': {
+    host: 'localhost',
+    database: 'test',
+    username: 'postgres',
+    password: 'M2Idiftre&34FS',
+    port: 5532,
+  },
+  'user': {
+    host: 'localhost',
+    database: 'user',
+    username: 'postgres',
+    password: 'M2Idiftre&34FS',
+    port: 5532,
+  }
+};
 
-// queue.insert(ctx => {
-//   console.log(`\x1b[33m[PGSQL] ${ctx.SQL}\x1b[39m`);
-// })
+for (const name in configs) {
 
-// queue.find(ctx => {
-//   console.log(`\x1b[33m[PGSQL] ${ctx.SQL}\x1b[39m`);
-// })
+  const config = configs[name];
+  const client = new Client(name, pgclient(config));
 
-// queue.update(ctx => {
-//   console.log(`\x1b[33m[PGSQL] ${ctx.SQL}\x1b[39m`);
-// })
+  // client.before(ctx => {
+  //   console.log('before');
+  // });
 
-// queue.delete(ctx => {
-//   console.log(`\x1b[33m[PGSQL] ${ctx.SQL}\x1b[39m`);
-// })
+  client.after(ctx => {
+    console.log(`\x1b[33m[PGSQL] ${ctx.SQL}\x1b[39m`);
+  });
 
-queue.after(ctx => {
-  console.log(`\x1b[33m[PGSQL] ${ctx.SQL}\x1b[39m`);
-})
-
-const clients = new Clients(pgclient, config);
-
-// console.log(clients)
+}

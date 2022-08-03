@@ -1,31 +1,30 @@
-import { createType } from 'typeq';
-import isEmail from '../validator/isEmail.js';
+import { createType, Schema, methodKey } from 'typeq';
+import isEmail from './validator/isEmail.js';
 
-interface Options {
+const { outputs } = Schema.types.text;
+
+const methods = {
+  ...createType.baseMethods,
+  type(value: string) {
+    if (isEmail(value)) {
+      return { value };
+    } else {
+      return { error: `值必须为 email 类型，实际赋值为 '${value}'` };
+    }
+  }
+}
+
+export default function email(options: {
   default?: string
   comment?: string,
   optional?: boolean
   uniqueIndex?: boolean
-}
+}) {
 
-export function email(options: Options) {
-
-  const output = {
-    /** 输出为 SQL */
-    sql(value: unknown) { return { value }; },
-    /** 输出为 JSON */
-    json(value: string) { return { value }; }
-  }
-
-  return createType('varchar(100)', options, {
-    ...createType.baseMethods,
-    type(value: string) {
-      if (isEmail(String(value))) {
-        return { value: `'${value}'` };
-      } else {
-        return { error: `值必须为 email 类型，实际赋值为 '${value}'` };
-      }
-    }
-  }, output);
+  return createType('varchar(100)', options, methods, outputs);
 
 }
+
+email.outputs = outputs;
+email[methodKey] = methods.type;
+Object.defineProperty(email, 'name', { value: 'varchar(100)' });

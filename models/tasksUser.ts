@@ -1,8 +1,8 @@
-import { VModel } from 'typeq';
+import { VSchema, VModel } from 'typeq';
 import tasks from './tasks.js';
 import user from './user.js';
 
-export default new VModel({ a: tasks, b: user }, {
+const vschema = new VSchema({
    tid: "a.id",
    keywords: "a.keywords",
    list: "a.list",
@@ -16,9 +16,6 @@ export default new VModel({ a: tasks, b: user }, {
    email: "b.email",
    userAge: "b.age",
    userCreatedAt: "b.createdAt",
-}, {
-   join: 'innerJoin',
-   on: { 'a.uid': 'b.id' }
-});
+}, { a: tasks, b: user });
 
-// 'tasks as a innerJoin user as b on a.uid === b.id'
+export default new VModel('tasksUser', vschema, 'a innerJoin b on a.uid === b.id');

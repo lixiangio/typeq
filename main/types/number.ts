@@ -1,4 +1,4 @@
-import createType, { baseMethods } from './createType.js';
+import { createType, baseMethods } from './createType.js';
 import { methodKey } from '../common.js';
 import { outputs } from './common.js';
 
@@ -26,7 +26,7 @@ const intMethods = {
     if (Number.isInteger(value)) {
       return { value, next: true };
     } else {
-      return { error: ` 值必须为 integer 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 integer 类型，实际赋值为 '${value}'` };
     }
   },
   /**限制最小值 */
@@ -51,17 +51,16 @@ const intMethods = {
  * integer 类型
  * @param options 类型选项
  */
-export function integer(options: Options) { return createType<Options>('integer', options, intMethods, outputs); }
+export function integer(options: Options) { return createType('integer', options, intMethods, outputs); }
 
-Object.defineProperty(integer, 'outputs', { value: outputs });
-Object.defineProperty(integer, methodKey, { value: intMethods.type });
+integer.outputs = outputs;
+integer[methodKey] = intMethods.type;
 
 
-export function bigint(options: Options) { return createType<Options>('bigint', options, intMethods, outputs); }
+export function bigint(options: Options) { return createType('bigint', options, intMethods, outputs); }
 
-Object.defineProperty(bigint, 'outputs', { value: outputs });
-Object.defineProperty(bigint, methodKey, { value: intMethods.type });
-
+bigint.outputs = outputs;
+bigint[methodKey] = intMethods.type;
 
 const floatMethods = {
   ...baseMethods,
@@ -69,7 +68,7 @@ const floatMethods = {
     if (isNaN(value) === false && parseFloat(String(value)) !== NaN) {
       return { value, next: true };
     } else {
-      return { error: ` 值必须为 float 类型，实际赋值为 '${value}'` };
+      return { error: `值必须为 float 类型，实际赋值为 '${value}'` };
     }
   },
   /**限制最小值 */
@@ -90,18 +89,20 @@ const floatMethods = {
   }
 };
 
-export function float4(options: Omit<Options, 'sequence'>) { return createType<Options>('float4', options, floatMethods, outputs); }
 
-Object.defineProperty(float4, 'outputs', { value: outputs });
-Object.defineProperty(float4, methodKey, { value: floatMethods.type });
+export function float4(options: Omit<Options, 'sequence'>) { return createType('float4', options, floatMethods, outputs); }
 
-export function float8(options: Omit<Options, 'sequence'>) { return createType<Options>('float8', options, floatMethods, outputs); }
-
-Object.defineProperty(float8, 'outputs', { value: outputs });
-Object.defineProperty(float8, methodKey, { value: floatMethods.type });
+float4.outputs = outputs;
+float4[methodKey] = floatMethods.type;
 
 
-export function money(options: Omit<Options, 'sequence'>) { return createType<Options>('money', options, floatMethods, outputs); }
+export function float8(options: Omit<Options, 'sequence'>) { return createType('float8', options, floatMethods, outputs); }
 
-Object.defineProperty(money, 'outputs', { value: outputs });
-Object.defineProperty(money, methodKey, { value: floatMethods.type });
+float8.outputs = outputs;
+float8[methodKey] = floatMethods.type;
+
+
+export function money(options: Omit<Options, 'sequence'>) { return createType('money', options, floatMethods, outputs); }
+
+money.outputs = outputs;
+money[methodKey] = floatMethods.type;

@@ -1,10 +1,9 @@
 import test from 'jtm';
 import { Schema } from 'typea';
 import { operator } from 'typeq';
-import models from '../models/index.js';
+import { tasks } from '../models/index.js';
 import { tasks2 } from '../data/tasks.js';
 
-const { tasks } = models;
 const { $in } = operator;
 
 test('delete', async t => {
@@ -29,7 +28,6 @@ test('delete $in', async t => {
 
    const result = await tasks
       .delete({ id: $in(a.id, b.id, c.id) })
-      .or({ id: 3 })
       .return('id');
 
    t.deepEqual(insertData, result);
