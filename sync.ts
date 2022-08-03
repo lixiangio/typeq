@@ -2,7 +2,6 @@ import { client } from './main/index.js';
 import { type ModelFn } from './main/model.js';
 import { type Options, methodKey } from './main/common.js';
 
-
 /**
 * 数据模型同步
 */

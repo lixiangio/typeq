@@ -2,7 +2,13 @@
 
 适用于 Postgresql、CockroachDB、Materialize 数据库的简单、轻量级 ORM。
 
+> 该项目基于 [ormv](https://github.com/lixiangio/ormv) 重构，目前处于开发阶段
+
 ## 特性
+
+- 支持为 JSON、JSONB 类型字段建模，提供 JSON 数据结构与类型的深层校验；
+
+- 支持为 JSONB 类型自动创建独立的自增序列，为嵌套数据查询提供唯一索引；
 
 - 采用数据模型与数据库连接池分离设计，支持集成部署或独立部署两种可选方案。
 
@@ -12,17 +18,13 @@
 
 - 使用简洁、直观、可嵌套的数据模型，通过类型函数声明，确保字段命名安全、无冲突；
 
-- 支持为 JSON、JSONB 类型字段建模，提供 JSON 数据结构与类型的深层校验；
-
-- 支持为 JSONB 类型自动创建独立的自增序列，为嵌套数据查询提供唯一索引；
-
-- 支持创建虚拟表模型，即将已有的单个或多个模型，通过映射、裁切为新的虚拟模型；
+- 支持创建虚拟表模型，将已有的单个或多个模型，通过映射、裁切为新的虚拟模型；
 
 - 支持扩展自定义运算符函数、自定义数据类型验证器；
 
 - 支持可扩展的查询任务流，可实现 SQL 请求拦截、转发、改写等定制化需求；
 
-- 支持 Schema、表结构同步，将数据模型中表结构、索引等信息同步至表实体；
+- 支持将数据模型中数据结构、索引、自增序列等信息同步至表实体；
 
 - 保留类似 SQL 的语法特征，使用函数链风格的查询表达式，简洁、直观、易于读写；
 
@@ -35,7 +37,7 @@ npm install typeq
 ## Example
 
 ```ts
-import { Clients, Schema, Model, queue, operator } from "typepg";
+import { Client, Schema, Model, operator } from "typepg";
 import pgclient from "@typeq/pg";
 
 const { integer, string, boolean, email, jsonb } = Schema.types;
@@ -80,15 +82,16 @@ const schema = new Schema({
 const tasks = new Model("tasks", schema);
 
 /** 连接数据库 */
-const clients = new Clients(pgclient, {
-  default: {
+const client = new Client(
+  "default",
+  pgclient({
     host: "localhost",
     database: "demo",
     user: "postgres",
     password: "******",
     port: 5432,
-  },
-});
+  })
+);
 
 const { $as, $in } = operator; // 查询操作符
 
@@ -121,34 +124,27 @@ const result = await tasks.delete({ id: 1 });
 > 配置参数与 pg 模块兼容，更多参数细节请参考 [node-postgres 文档](https://node-postgres.com/)
 
 ```ts
-import { queue } from "typepg";
 import pgclient from "typepg/pgclient";
 
 const client = pgclient({
-  default: {
-    host: string, // 主机名
-    database: string, // 数据库名
-    username: string, // 用户名
-    password: string, // 密码
-    port: number, // 端口
-    logger: boolean, // 打印 sql 日志，可选
-    connectionString: string, // 字符串连接参数，可选
-  },
+  host: string, // 主机名
+  database: string, // 数据库名
+  username: string, // 用户名
+  password: string, // 密码
+  port: number, // 端口
+  logger: boolean, // 打印 sql 日志，可选
+  connectionString: string, // 字符串连接参数，可选
 });
-
-queue.use(client);
 ```
 
 ## 添加模型
 
 ```ts
 const schema = new Schema({ [field: name]: Type });
-
 const model = new Model(name: string, schema: Schema);
 ```
 
-- name - 表名称
-
+- name - 实体表名称
 - schema - 模式实例
 
 ## 模型同步
@@ -168,7 +164,7 @@ sync(model: Model).createTable(options);
 #### 示例
 
 ```js
-// 同步 schema 为public下的 user 表
+// 同步 schema 为 public 下的 user 表
 sync(model: Model).rebuildTable("public.user");
 
 // 使用重构模式，删除并重建 user 表（未指定 schema 时，默认为 public）
